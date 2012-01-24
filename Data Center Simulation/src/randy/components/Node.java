@@ -14,6 +14,7 @@
  */
 package randy.components;
 
+import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
 
@@ -24,12 +25,55 @@ import java.util.UUID;
  */
 public class Node {
 
-	private UUID uuid;
+	private final UUID uuid;
 	/**
 	 * Name of the components
 	 */
-	private String name;
-	private List<Link> links;
+	private final String name;
+	/**
+	 * Links attached to this components
+	 */
+	private final List<Link> links = new LinkedList<Link>();
+	/**
+	 * Whether this component is failed or not
+	 */
 	private boolean failed;
+	/**
+	 * The address of the node
+	 */
+	private IPAddr addr;
 
+	public final boolean isFailed() {
+		return this.failed;
+	}
+
+	public final void setFailed(boolean failed) {
+		this.failed = failed;
+	}
+
+	public final IPAddr getAddr() {
+		return this.addr;
+	}
+
+	public final void setAddr(IPAddr addr) {
+		this.addr = addr;
+	}
+
+	public final UUID getUuid() {
+		return this.uuid;
+	}
+
+	public final String getName() {
+		return this.name;
+	}
+
+	public final List<Link> getLinks() {
+		return this.links;
+	}
+
+	public Node(String name) {
+		this.name = name;
+		this.uuid = UUID.randomUUID();
+		this.addr = null;
+	}
 }

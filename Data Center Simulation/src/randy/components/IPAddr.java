@@ -57,6 +57,15 @@ public class IPAddr {
 	}
 
 	/**
+	 * Insert a segment to the head
+	 * 
+	 * @param content
+	 * @author Hongze Zhao
+	 */
+	public void insertSegment2Head(int content) {
+		this.addrs.add(0, content);
+	}
+	/**
 	 * Append a segment to the IP addr
 	 * 
 	 * @param content
