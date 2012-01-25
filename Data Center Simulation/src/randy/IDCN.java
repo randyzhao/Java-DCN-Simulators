@@ -87,4 +87,28 @@ public interface IDCN {
 	 */
 	boolean containNode(UUID nodeUUID);
 
+	/**
+	 * random fail the servers and all their connected links
+	 * 
+	 * @param ration
+	 * @author Hongze Zhao
+	 */
+	void randomFailServers(double ration);
+
+	/**
+	 * Random fail the switches and all their connected switches
+	 * 
+	 * @param ration
+	 * @author Hongze Zhao
+	 */
+	void randomFailSwitches(double ration);
+
+	/**
+	 * random fail the links
+	 * 
+	 * @param ration
+	 * @author Hongze Zhao
+	 */
+	void randomFailLinks(double ration);
+
 }

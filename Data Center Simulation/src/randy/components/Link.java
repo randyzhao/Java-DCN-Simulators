@@ -14,6 +14,7 @@
  */
 package randy.components;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -41,11 +42,39 @@ public class Link {
 	/**
 	 * Whether this link is failed or not
 	 */
-	private boolean failed;
+	private boolean failed = false;
 	/**
 	 * Flows already been attached to the link
 	 */
-	private List<Flow> flows;
+	private final List<Flow> flows = new ArrayList<Flow>();
+
+	public boolean isFailed() {
+		return this.failed;
+	}
+
+	public void setFailed(boolean failed) {
+		this.failed = failed;
+	}
+
+	public UUID getUuid() {
+		return this.uuid;
+	}
+
+	public Node getHead() {
+		return this.head;
+	}
+
+	public Node getTail() {
+		return this.tail;
+	}
+
+	public double getBandwidth() {
+		return this.bandwidth;
+	}
+
+	public List<Flow> getFlows() {
+		return this.flows;
+	}
 
 	/**
 	 * attach a flow to this link

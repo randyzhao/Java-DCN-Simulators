@@ -14,11 +14,13 @@
 */
 package randy;
 
+import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
+import java.util.Random;
 import java.util.UUID;
 
+import randy.components.Link;
 import randy.components.Node;
 
 /**
@@ -29,10 +31,11 @@ import randy.components.Node;
  */
 public abstract class BaseDCN implements IDCN {
 
+	private final Random ran = new Random();
 	/**
 	 * Servers
 	 */
-	private final List<Node> servers = new LinkedList<Node>();
+	private final List<Node> servers = new ArrayList<Node>();
 	/**
 	 * key is servers' UUID, value is the reference Used to get Node by UUID
 	 */
@@ -41,12 +44,16 @@ public abstract class BaseDCN implements IDCN {
 	/**
 	 * Switches
 	 */
-	private final List<Node> switches = new LinkedList<Node>();
+	private final List<Node> switches = new ArrayList<Node>();
 	/**
 	 * Key is switches' UUID, value is the reference
 	 */
 	private final HashMap<UUID, Node> switchesUUIDHashMap = new HashMap<UUID, Node>();
 
+	/**
+	 * All links
+	 */
+	private final List<Link> links = new ArrayList<Link>();
 	/* (non-Javadoc)
 	 * @see randy.IDCN#route(java.util.UUID, java.util.UUID)
 	 */
@@ -59,6 +66,51 @@ public abstract class BaseDCN implements IDCN {
 	@Override
 	public boolean containNode(UUID nodeUUID) {
 		return this.serverUUIDHashMap.containsKey(nodeUUID);
+	}
+
+	@Override
+	public void randomFailServers(double ration) {
+		for (Node node : this.servers) {
+			double temp = this.ran.nextDouble();
+			if (temp < ration) {
+				node.setFailed(true);
+				List<Link> links = node.getLinks();
+				for (Link l : links) {
+					l.setFailed(true);
+				}
+			} else {
+				node.setFailed(false);
+			}
+		}
+
+	}
+
+	@Override
+	public void randomFailSwitches(double ration) {
+		for (Node node : this.switches) {
+			double temp = this.ran.nextDouble();
+			if (temp < ration) {
+				node.setFailed(true);
+				List<Link> links = node.getLinks();
+				for (Link l : links) {
+					l.setFailed(true);
+				}
+			} else {
+				node.setFailed(false);
+			}
+		}
+	}
+
+	@Override
+	public void randomFailLinks(double ration) {
+		for (Link l : this.links) {
+			double temp = this.ran.nextDouble();
+			if (temp < ration) {
+				l.setFailed(true);
+			} else {
+				l.setFailed(false);
+			}
+		}
 	}
 
 }

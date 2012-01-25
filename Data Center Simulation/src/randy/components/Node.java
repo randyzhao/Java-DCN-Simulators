@@ -14,7 +14,7 @@
  */
 package randy.components;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -33,11 +33,11 @@ public class Node {
 	/**
 	 * Links attached to this components
 	 */
-	private final List<Link> links = new LinkedList<Link>();
+	private final List<Link> links = new ArrayList<Link>();
 	/**
 	 * Whether this component is failed or not
 	 */
-	private boolean failed;
+	private boolean failed = false;
 	/**
 	 * The address of the node
 	 */
@@ -47,6 +47,12 @@ public class Node {
 		return this.failed;
 	}
 
+	/**
+	 * Set failure tag for a node and all its connected links
+	 * 
+	 * @param failed
+	 * @author Hongze Zhao
+	 */
 	public final void setFailed(boolean failed) {
 		this.failed = failed;
 	}

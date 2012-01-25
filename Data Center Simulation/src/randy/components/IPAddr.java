@@ -44,6 +44,18 @@ public class IPAddr {
 		return output;
 	}
 
+	static public IPAddr getCommonPrefix(IPAddr a1, IPAddr a2) {
+		List<Integer> temp = new LinkedList<Integer>();
+		int length = Math.min(a1.getLength(), a2.getLength());
+		for (int i = 0; i < length; i++) {
+			if (a1.getSegment(i) == a2.getSegment(i)) {
+				temp.add(a1.getSegment(i));
+			} else {
+				break;
+			}
+		}
+		return new IPAddr(temp);
+	}
 	/**
 	 * Get a segment of the IP addrs
 	 * 
@@ -85,6 +97,15 @@ public class IPAddr {
 		this.addrs.remove(this.addrs.size() - 1);
 	}
 
+	/**
+	 * the number of segments
+	 * 
+	 * @return
+	 * @author Hongze Zhao
+	 */
+	public int getLength() {
+		return this.addrs.size();
+	}
 	public IPAddr() {
 	}
 
