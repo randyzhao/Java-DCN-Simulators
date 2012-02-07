@@ -109,6 +109,18 @@ public class IPAddr {
 	}
 
 	/**
+	 * Connect a IPAddrjj
+	 * 
+	 * @param ad
+	 * @author Hongze Zhao
+	 */
+	public void connect(IPAddr ad) {
+		for (int i = 0; i < ad.addrs.size(); i++) {
+			this.addrs.add(ad.addrs.get(i));
+		}
+	}
+
+	/**
 	 * Append any number of segments and copy and return
 	 * 
 	 * @param addrList

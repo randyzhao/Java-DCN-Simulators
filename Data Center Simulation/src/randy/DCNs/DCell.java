@@ -32,11 +32,11 @@ public class DCell extends BaseDCN {
 	/**
 	 * number of servers in DCell_0
 	 */
-	private int n;
+	private final int n;
 	/**
 	 * highest level
 	 */
-	private int l;
+	private final int l;
 
 	/**
 	 * 
@@ -46,13 +46,14 @@ public class DCell extends BaseDCN {
 	 *            highest level
 	 */
 	public DCell(int n, int l) {
+		this.n = n;
+		this.l = l;
 		IPAddr pref = new IPAddr();
 		this.BuildDCells(pref, n, l);
 	}
 
 	public void BuildDCells(IPAddr pref, int n, int l){
 		System.out.println("into BuildDCells n is " + n + "  l is " + l);
-		this.n = n;
 		if (l == 0){//build DCell_0
 			Node Switch = new Node("switch");
 			this.addSwitch(Switch);
@@ -84,8 +85,14 @@ public class DCell extends BaseDCN {
 			for (int j = i + 1; j < tempgl; j++) {
 				int uid1 = j - 1;
 				int uid2 = i;
-				IPAddr addr1 = pref.appendAndCopy(i, uid1);
-				IPAddr addr2 = pref.appendAndCopy(j, uid2);
+				IPAddr addr1 = pref.appendAndCopy(i);
+				addr1.connect(prefFromUid(uid1, l - 1, n));
+				assert addr1.getLength() == this.l + 1 : "the addr len is "
+						+ addr1.getLength() + "\n it should be " + (this.l + 1);
+				IPAddr addr2 = pref.appendAndCopy(j);
+				addr2.connect(prefFromUid(uid2, l - 1, n));
+				assert addr2.getLength() == this.l + 1 : "the addr len is "
+						+ addr2.getLength() + "\n it should be " + (this.l + 1);
 				this.connectNode(addr1, addr2, ConstantManager.LINK_BANDWIDTH);
 
 			}
@@ -115,9 +122,10 @@ public class DCell extends BaseDCN {
 	 * Calculate pref from uid
 	 * 
 	 * @param k
+	 *            the level of the uid
 	 * @param n
 	 * @param uid
-	 * @return
+	 * @return the result prefix, the length is k + 1
 	 * @author Hongze Zhao
 	 */
 	private static IPAddr prefFromUid(int uid, int k, int n) {
@@ -175,7 +183,7 @@ public class DCell extends BaseDCN {
 		// System.out.println("try construction");
 		// // new DCell(4, 0);
 		// new DCell(4, 1);
-		// // new DCell(4, 2);
+		new DCell(4, 2);
 		// System.out.println("construction is OK");
 		// int n = 8, l = 4;
 		// for (int i = 0; i <= l; i++) {
@@ -187,9 +195,10 @@ public class DCell extends BaseDCN {
 		// System.out
 		// .println(DCell.uidFromPref(DCell.prefFromUid(uid, 2, 8), 2, 8));
 		// System.out.println(DCell.getTk(2, 8));
-		for (int i = 0; i < 1000; i++) {
-			System.out.println(DCell.prefFromUid(i, 2, 8).toString());
-		}
+		// for (int i = 0; i < 1000; i++) {
+		// System.out.println(DCell.prefFromUid(i, 2, 8).toString());
+		// }
+		assert false : "The test is over";
 	}
 
 }
