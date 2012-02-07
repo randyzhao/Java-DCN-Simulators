@@ -14,6 +14,9 @@
 */
 package randy.DCNs;
 
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.UUID;
 
 import randy.BaseDCN;
@@ -35,7 +38,20 @@ public class DCell extends BaseDCN {
 	 */
 	private int l;
 
+	/**
+	 * 
+	 * @param n
+	 *            number of servers in DCell_0
+	 * @param l
+	 *            highest level
+	 */
+	public DCell(int n, int l) {
+		IPAddr pref = new IPAddr();
+		this.BuildDCells(pref, n, l);
+	}
+
 	public void BuildDCells(IPAddr pref, int n, int l){
+		System.out.println("into BuildDCells n is " + n + "  l is " + l);
 		this.n = n;
 		if (l == 0){//build DCell_0
 			Node Switch = new Node("switch");
@@ -45,6 +61,8 @@ public class DCell extends BaseDCN {
 				IPAddr newAddr = new IPAddr(pref);
 				newAddr.appendSegment(i);
 				server.setAddr(newAddr);
+				this.addServer(server);
+				System.out.println("add server " + server.getAddr().toString());
 				this.connectNode(Switch, server, ConstantManager.LINK_BANDWIDTH);
 			}
 			return;
@@ -53,16 +71,16 @@ public class DCell extends BaseDCN {
 
 		//l != 0
 		//part II
-		int gl = this.getGk(l, n);
+		int gl = DCell.getGk(l, n);
 		for (int i = 0; i < gl; i++) {// build the DCell_{l - 1}s
 			IPAddr newAddr = new IPAddr(pref);
 			newAddr.appendSegment(i);
 			this.BuildDCells(newAddr, n, l - 1);
 		}
 		// part III
-		int tlminus1 = this.getTk(l - 1, n);
+		int tlminus1 = DCell.getTk(l - 1, n);
 		for (int i = 0; i < tlminus1; i++) {// connect the DCell_{l - 1}s
-			int tempgl = this.getGk(l, n);
+			int tempgl = DCell.getGk(l, n);
 			for (int j = i + 1; j < tempgl; j++) {
 				int uid1 = j - 1;
 				int uid2 = i;
@@ -76,17 +94,56 @@ public class DCell extends BaseDCN {
 	}
 
 	/**
+	 * Calculate uid from pref
+	 * 
+	 * @param k
+	 * @param n
+	 * @param addr
+	 * @return
+	 * @author Hongze Zhao
+	 */
+	private static int uidFromPref(IPAddr addr, int k, int n) {
+		int uid = 0;
+		uid += addr.getSegment(addr.getLength() - 1);
+		for (int j = 1; j <= k; j++) {
+			uid += addr.getSegment(addr.getLength() - 1 - j) * getTk(j - 1, n);
+		}
+		return uid;
+	}
+
+	/**
+	 * Calculate pref from uid
+	 * 
+	 * @param k
+	 * @param n
+	 * @param uid
+	 * @return
+	 * @author Hongze Zhao
+	 */
+	private static IPAddr prefFromUid(int uid, int k, int n) {
+		List<Integer> addr = new LinkedList<Integer>();
+		Integer[] a = new Integer[k + 1];
+		for (int j = k; j >= 1; j--) {
+			int tk = getTk(j - 1, n);
+			a[k - j] = uid / tk;
+			uid -= tk * a[k - j];
+		}
+		a[k] = uid;
+		return new IPAddr(Arrays.asList(a));
+	}
+
+	/**
 	 * Calculate g_k
 	 * 
 	 * @param k
 	 * @return g_k
 	 * @author Hongze Zhao
 	 */
-	private int getGk(int k, int n) {
+	private static int getGk(int k, int n) {
 		if (k == 0) {
 			return 1;
 		} else {
-			return this.getTk(k - 1, n) + 1;
+			return getTk(k - 1, n) + 1;
 		}
 	}
 
@@ -97,11 +154,11 @@ public class DCell extends BaseDCN {
 	 * @return
 	 * @author Hongze Zhao
 	 */
-	private int getTk(int k, int n) {
+	private static int getTk(int k, int n) {
 		if (k == 0){
 			return n;
 		} else {
-			return this.getGk(k, n) * this.getTk(k - 1, n);
+			return getGk(k, n) * getTk(k - 1, n);
 		}
 	}
 
@@ -112,6 +169,27 @@ public class DCell extends BaseDCN {
 	public RouteResult route(UUID sourceUUID, UUID targetUUID) {
 		// TODO Auto-generated method stub
 		return null;
+	}
+
+	public static void main(String[] args){
+		// System.out.println("try construction");
+		// // new DCell(4, 0);
+		// new DCell(4, 1);
+		// // new DCell(4, 2);
+		// System.out.println("construction is OK");
+		// int n = 8, l = 4;
+		// for (int i = 0; i <= l; i++) {
+		// System.out.println("t" + i + " is " + getTk(i, n));
+		// System.out.println("g" + i + " is " + getGk(i, n));
+		// }
+		// int uid = 5000;
+		// System.out.println(DCell.prefFromUid(uid, 2, 8).toString());
+		// System.out
+		// .println(DCell.uidFromPref(DCell.prefFromUid(uid, 2, 8), 2, 8));
+		// System.out.println(DCell.getTk(2, 8));
+		for (int i = 0; i < 1000; i++) {
+			System.out.println(DCell.prefFromUid(i, 2, 8).toString());
+		}
 	}
 
 }

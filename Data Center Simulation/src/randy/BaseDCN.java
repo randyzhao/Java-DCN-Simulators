@@ -116,8 +116,10 @@ public abstract class BaseDCN implements IDCN {
 	protected void connectNode(IPAddr addr1, IPAddr addr2, double bandwidth) {
 		Node server1 = this.getServer(addr1);
 		Node server2 = this.getServer(addr2);
-		assert (server1 != null);
-		assert (server2 != null);
+		assert (server1 != null) : "server1 is null, addr is "
+				+ addr1.toString();
+		assert (server2 != null) : "server2 is null, addr is "
+				+ addr2.toString();
 		this.connectNode(server1, server2, bandwidth);
 	}
 

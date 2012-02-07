@@ -124,6 +124,20 @@ public class IPAddr {
 		return new IPAddr(addr);
 	}
 
+	/**
+	 * Connect this IPAddr and ad and returns the result
+	 * 
+	 * @param ad
+	 * @return
+	 * @author Hongze Zhao
+	 */
+	public IPAddr connectAndCopy(IPAddr ad) {
+		List<Integer> addr = new LinkedList<Integer>();
+		addr.addAll(this.addrs);
+		addr.addAll(ad.addrs);
+		return new IPAddr(addr);
+	}
+
 	@Override
 	public boolean equals(Object obj) {
 		if (!(obj instanceof IPAddr)) {
@@ -143,6 +157,7 @@ public class IPAddr {
 	}
 
 	public IPAddr() {
+		this.addrs = new ArrayList<Integer>();
 	}
 	public IPAddr(String addrStr) {
 		this.addrs = IPAddr.parseAddrs(addrStr);
@@ -154,6 +169,18 @@ public class IPAddr {
 
 	public IPAddr(IPAddr ip) {
 		this.addrs.addAll(ip.addrs);
+	}
+
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+		for (int i = 0; i < this.addrs.size(); i++) {
+			if (i != 0) {
+				sb.append(".");
+			}
+			sb.append(this.addrs.get(i));
+		}
+		return sb.toString();
 	}
 
 }
