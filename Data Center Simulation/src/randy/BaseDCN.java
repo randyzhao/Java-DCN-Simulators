@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Random;
 import java.util.UUID;
 
+import randy.components.IPAddr;
 import randy.components.Link;
 import randy.components.Node;
 
@@ -35,28 +36,91 @@ public abstract class BaseDCN implements IDCN {
 	/**
 	 * Servers
 	 */
-	private final List<Node> servers = new ArrayList<Node>();
+	protected final List<Node> servers = new ArrayList<Node>();
 	/**
 	 * key is servers' UUID, value is the reference Used to get Node by UUID
 	 */
-	private final HashMap<UUID, Node> serverUUIDHashMap = new HashMap<UUID, Node>();
+	protected final HashMap<UUID, Node> serverUUIDHashMap = new HashMap<UUID, Node>();
 
 	/**
 	 * Switches
 	 */
-	private final List<Node> switches = new ArrayList<Node>();
+	protected final List<Node> switches = new ArrayList<Node>();
 	/**
 	 * Key is switches' UUID, value is the reference
 	 */
-	private final HashMap<UUID, Node> switchesUUIDHashMap = new HashMap<UUID, Node>();
+	protected final HashMap<UUID, Node> switchesUUIDHashMap = new HashMap<UUID, Node>();
 
 	/**
 	 * All links
 	 */
-	private final List<Link> links = new ArrayList<Link>();
+	protected final List<Link> links = new ArrayList<Link>();
 	/* (non-Javadoc)
 	 * @see randy.IDCN#route(java.util.UUID, java.util.UUID)
 	 */
+
+	/**
+	 * Add a switch to switches and switchesUUIDHashMap
+	 * 
+	 * @param Switch
+	 * @author Hongze Zhao
+	 */
+	protected void addSwitch(Node Switch) {
+		this.switches.add(Switch);
+		this.switchesUUIDHashMap.put(Switch.getUuid(), Switch);
+	}
+
+	/**
+	 * Add a server to servers and serversUUIDHashMap
+	 * 
+	 * @param server
+	 * @author Hongze Zhao
+	 */
+	protected void addServer(Node server) {
+		this.servers.add(server);
+		this.serverUUIDHashMap.put(server.getUuid(), server);
+	}
+
+	/**
+	 * get a server by addr
+	 * 
+	 * @param addr
+	 * @author Hongze Zhao
+	 * @return
+	 */
+	protected Node getServer(IPAddr addr) {
+		for (Node server : this.servers) {
+			if (server.getAddr().equals(addr)) {
+				return server;
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * Connect two nodes with one link with specified bandwidth
+	 * 
+	 * @param n1
+	 * @param n2
+	 * @param bandwidth
+	 *            the bandwidth of the link
+	 * @author Hongze Zhao
+	 */
+	protected void connectNode(Node n1, Node n2, double bandwidth){
+		Link link = new Link(bandwidth, n1, n2);
+		this.links.add(link);
+		n1.addLink(link);
+		n2.addLink(link);
+	}
+
+	protected void connectNode(IPAddr addr1, IPAddr addr2, double bandwidth) {
+		Node server1 = this.getServer(addr1);
+		Node server2 = this.getServer(addr2);
+		assert (server1 != null);
+		assert (server2 != null);
+		this.connectNode(server1, server2, bandwidth);
+	}
+
 	@Override
 	abstract public RouteResult route(UUID sourceUUID, UUID targetUUID);
 

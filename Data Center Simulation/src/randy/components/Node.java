@@ -73,6 +73,10 @@ public class Node {
 		return this.name;
 	}
 
+	public void addLink(Link l) {
+		this.links.add(l);
+	}
+
 	public final List<Link> getLinks() {
 		return this.links;
 	}

@@ -14,6 +14,7 @@
 */
 package randy.components;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -24,7 +25,7 @@ import java.util.List;
  */
 public class IPAddr {
 
-	private List<Integer> addrs;
+	private List<Integer> addrs = new ArrayList<Integer>();
 
 	/**
 	 * Parse IP address from a string the format should be
@@ -106,9 +107,43 @@ public class IPAddr {
 	public int getLength() {
 		return this.addrs.size();
 	}
-	public IPAddr() {
+
+	/**
+	 * Append any number of segments and copy and return
+	 * 
+	 * @param addrList
+	 * @return appended IPAddr
+	 * @author Hongze Zhao
+	 */
+	public IPAddr appendAndCopy(int... addrList) {
+		List<Integer> addr = new LinkedList<Integer>();
+		addr.addAll(this.addrs);
+		for (int i = 0; i < addrList.length; i++) {
+			addr.add(addrList[i]);
+		}
+		return new IPAddr(addr);
 	}
 
+	@Override
+	public boolean equals(Object obj) {
+		if (!(obj instanceof IPAddr)) {
+			return false;
+		}
+		// obj is an instance of IPAddr
+		List<Integer> ad = ((IPAddr) obj).addrs;
+		if (ad.size() != this.addrs.size()) {
+			return false;
+		}
+		for (int i = 0; i < ad.size(); i++) {
+			if (this.addrs.get(i) != ad.get(i)) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	public IPAddr() {
+	}
 	public IPAddr(String addrStr) {
 		this.addrs = IPAddr.parseAddrs(addrStr);
 	}
@@ -116,4 +151,9 @@ public class IPAddr {
 	public IPAddr(List<Integer> addrList) {
 		this.addrs = addrList;
 	}
+
+	public IPAddr(IPAddr ip) {
+		this.addrs.addAll(ip.addrs);
+	}
+
 }

@@ -110,5 +110,4 @@ public interface IDCN {
 	 * @author Hongze Zhao
 	 */
 	void randomFailLinks(double ration);
-
 }
