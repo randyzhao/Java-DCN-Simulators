@@ -14,8 +14,6 @@
 */
 package test;
 
-import static org.junit.Assert.fail;
-
 import java.util.Arrays;
 import java.util.List;
 
@@ -32,12 +30,18 @@ import randy.components.IPAddr;
  */
 public class IPAddrTest {
 
+	private IPAddr a1 = new IPAddr(new Integer[] {});
+	private IPAddr a2 = new IPAddr(new Integer[] { 1, 2 });
+	private IPAddr a3 = new IPAddr(new Integer[] { 3, 4, 5 });
 	/**
 	 * @throws java.lang.Exception
 	 * @author Hongze Zhao	
 	 */
 	@Before
 	public void setUp() throws Exception {
+		this.a1 = new IPAddr(new Integer[] {});
+		this.a2 = new IPAddr(new Integer[] { 1, 2 });
+		this.a3 = new IPAddr(new Integer[] { 3, 4, 5 });
 	}
 
 	/**
@@ -91,7 +95,9 @@ public class IPAddrTest {
 	 */
 	@Test
 	public void testInsertSegment2Head() {
-
+		IPAddr addr1 = new IPAddr(new Integer[] { 1, 2 });
+		addr1.insertSegment2Head(0);
+		Assert.assertEquals("0.1.2", addr1.toString());
 	}
 
 	/**
@@ -99,7 +105,9 @@ public class IPAddrTest {
 	 */
 	@Test
 	public void testAppendSegment() {
-		fail("Not yet implemented"); // TODO
+		IPAddr addr1 = new IPAddr(new Integer[] { 1, 2 });
+		addr1.appendSegment(3);
+		Assert.assertEquals("1.2.3", addr1.toString());
 	}
 
 	/**
@@ -107,7 +115,9 @@ public class IPAddrTest {
 	 */
 	@Test
 	public void testMinusSegment() {
-		fail("Not yet implemented"); // TODO
+		IPAddr addr1 = new IPAddr(new Integer[] { 1, 2 });
+		addr1.minusSegment();
+		Assert.assertEquals("1", addr1.toString());
 	}
 
 	/**
@@ -115,7 +125,10 @@ public class IPAddrTest {
 	 */
 	@Test
 	public void testGetLength() {
-		fail("Not yet implemented"); // TODO
+		IPAddr addr1 = new IPAddr(new Integer[] {});
+		Assert.assertEquals(0, addr1.getLength());
+		IPAddr addr2 = new IPAddr(new Integer[] { 1, 2, 3 });
+		Assert.assertEquals(3, addr2.getLength());
 	}
 
 	/**
@@ -123,7 +136,11 @@ public class IPAddrTest {
 	 */
 	@Test
 	public void testConnect() {
-		fail("Not yet implemented"); // TODO
+		this.a1.connect(this.a2);
+		Assert.assertEquals("1.2", this.a1.toString());
+		this.a1.connect(this.a3);
+		Assert.assertEquals("1.2.3.4.5", this.a1.toString());
+
 	}
 
 	/**
@@ -131,7 +148,10 @@ public class IPAddrTest {
 	 */
 	@Test
 	public void testAppendAndCopy() {
-		fail("Not yet implemented"); // TODO
+		IPAddr addr1 = this.a1.appendAndCopy(3, 4, 5);
+		Assert.assertEquals("1.2.3.4.5", addr1.toString());
+		IPAddr addr2 = addr1.appendAndCopy(7, 8, 9);
+		Assert.assertEquals("1.2.3.4.5.7.8.9", addr2.toString());
 	}
 
 	/**
@@ -139,7 +159,10 @@ public class IPAddrTest {
 	 */
 	@Test
 	public void testConnectAndCopy() {
-		fail("Not yet implemented"); // TODO
+		IPAddr addr1 = this.a1.connectAndCopy(this.a2);
+		Assert.assertEquals("1.2", addr1.toString());
+		IPAddr addr2 = addr1.connectAndCopy(this.a3);
+		Assert.assertEquals("1.2.3.4.5", addr2.toString());
 	}
 
 	/**
@@ -147,15 +170,10 @@ public class IPAddrTest {
 	 */
 	@Test
 	public void testEqualsObject() {
-		fail("Not yet implemented"); // TODO
-	}
-
-	/**
-	 * Test method for {@link randy.components.IPAddr#IPAddr()}.
-	 */
-	@Test
-	public void testIPAddr() {
-		fail("Not yet implemented"); // TODO
+		IPAddr addr1 = new IPAddr(new Integer[] {});
+		Assert.assertTrue(addr1.equals(this.a1));
+		IPAddr addr2 = new IPAddr(new Integer[] { 1, 2 });
+		Assert.assertTrue(addr2.equals(this.a2));
 	}
 
 	/**
@@ -163,7 +181,7 @@ public class IPAddrTest {
 	 */
 	@Test
 	public void testIPAddrString() {
-		fail("Not yet implemented"); // TODO
+		Assert.assertEquals("1.2.3.4.5", (new IPAddr("1.2.3.4.5")));
 	}
 
 	/**
@@ -171,15 +189,8 @@ public class IPAddrTest {
 	 */
 	@Test
 	public void testIPAddrListOfInteger() {
-		fail("Not yet implemented"); // TODO
-	}
-
-	/**
-	 * Test method for {@link randy.components.IPAddr#IPAddr(randy.components.IPAddr)}.
-	 */
-	@Test
-	public void testIPAddrIPAddr() {
-		fail("Not yet implemented"); // TODO
+		Integer[] temp = new Integer[] { 1, 2, 3, 4, 5 };
+		Assert.assertEquals("1.2.3.4.5", (new IPAddr(Arrays.asList(temp))));
 	}
 
 	/**
