@@ -24,7 +24,7 @@ import java.util.List;
  */
 public class Flow {
 	private final Node source;
-	private final Node target;
+	private Node target;
 	private final List<Link> links = new LinkedList<Link>();
 
 	/**
@@ -75,8 +75,34 @@ public class Flow {
 		return output;
 	}
 
+	public Node getSource() {
+		return this.source;
+	}
+
+	public Node getTarget() {
+		return this.target;
+	}
+
+	public List<Link> getLinks() {
+		return this.links;
+	}
+
+	/**
+	 * Connect this and flow Ensure this's target == flow' soruce
+	 * 
+	 * @param flow
+	 *            the flow to connect
+	 * @author Hongze Zhao
+	 */
+	public void connect(Flow flow) {
+		assert this.target == flow.source;
+		this.links.addAll(flow.links);
+		this.target = flow.target;
+	}
+
 	public Flow(Node source, Node target) {
 		this.source = source;
 		this.target = target;
 	}
+
 }

@@ -1,17 +1,17 @@
 /**  
-* Filename:    DCell.java  
-* Description:   
-* Copyright:   Copyright (c)2011 
-* Company:    company 
-* @author:     Hongze Zhao 
-* @version:    1.0  
-* Create at:   Jan 24, 2012 9:35:37 PM  
-*  
-* Modification History:  
-* Date         Author      Version     Description  
-* ------------------------------------------------------------------  
-* Jan 24, 2012    Hongze Zhao   1.0         1.0 Version  
-*/
+ * Filename:    DCell.java  
+ * Description:   
+ * Copyright:   Copyright (c)2011 
+ * Company:    company 
+ * @author:     Hongze Zhao 
+ * @version:    1.0  
+ * Create at:   Jan 24, 2012 9:35:37 PM  
+ *  
+ * Modification History:  
+ * Date         Author      Version     Description  
+ * ------------------------------------------------------------------  
+ * Jan 24, 2012    Hongze Zhao   1.0         1.0 Version  
+ */
 package randy.DCNs;
 
 import java.util.Arrays;
@@ -21,11 +21,15 @@ import java.util.UUID;
 
 import randy.BaseDCN;
 import randy.ConstantManager;
+import randy.components.Flow;
 import randy.components.IPAddr;
+import randy.components.Link;
 import randy.components.Node;
-/**Description:
- * @author Hongze Zhao
- * Create At : Jan 24, 2012 9:35:37 PM
+
+/**
+ * Description:
+ * 
+ * @author Hongze Zhao Create At : Jan 24, 2012 9:35:37 PM
  */
 public class DCell extends BaseDCN {
 
@@ -52,26 +56,26 @@ public class DCell extends BaseDCN {
 		this.BuildDCells(pref, n, l);
 	}
 
-	public void BuildDCells(IPAddr pref, int n, int l){
-		System.out.println("into BuildDCells n is " + n + "  l is " + l);
-		if (l == 0){//build DCell_0
+	public void BuildDCells(IPAddr pref, int n, int l) {
+		// System.out.println("into BuildDCells n is " + n + "  l is " + l);
+		if (l == 0) {// build DCell_0
 			Node Switch = new Node("switch");
 			this.addSwitch(Switch);
-			for (int i = 0; i < n; i++){//connect node[pref, i] to its switch
+			for (int i = 0; i < n; i++) {// connect node[pref, i] to its switch
 				Node server = new Node("server");
 				IPAddr newAddr = new IPAddr(pref);
 				newAddr.appendSegment(i);
 				server.setAddr(newAddr);
 				this.addServer(server);
-				System.out.println("add server " + server.getAddr().toString());
+				// System.out.println("add server " +
+				// server.getAddr().toString());
 				this.connectNode(Switch, server, ConstantManager.LINK_BANDWIDTH);
 			}
 			return;
 		}
-		
 
-		//l != 0
-		//part II
+		// l != 0
+		// part II
 		int gl = DCell.getGk(l, n);
 		for (int i = 0; i < gl; i++) {// build the DCell_{l - 1}s
 			IPAddr newAddr = new IPAddr(pref);
@@ -163,27 +167,108 @@ public class DCell extends BaseDCN {
 	 * @author Hongze Zhao
 	 */
 	private static int getTk(int k, int n) {
-		if (k == 0){
+		if (k == 0) {
 			return n;
 		} else {
 			return getGk(k, n) * getTk(k - 1, n);
 		}
 	}
 
-	/* (non-Javadoc)
+	/**
+	 * Get flow between two nodes in the same DCell0
+	 * 
+	 * @param source
+	 * @param target
+	 * @return
+	 * @author Hongze Zhao
+	 */
+	public Flow DCell0Link(Node source, Node target) {
+		Flow flow = new Flow(source, target);
+		// Note every Server's first link in links is connected to switch
+		flow.addLink(source.getLinks().get(0));
+		flow.addLink(target.getLinks().get(0));
+		return flow;
+	}
+
+	/**
+	 * GetLink(pref, s_{k-m}, d_{k-m} function in Paper calculate the link that
+	 * interconnects the two sub-DCells
+	 * 
+	 * @param pref
+	 *            common prefix
+	 * @param skm
+	 *            indices of one subDCell
+	 * @param dkm
+	 *            indices of another sub-DCell
+	 * @return
+	 * @author Hongze Zhao
+	 */
+	public Flow GetLink(IPAddr pref, int skm, int dkm) {
+		IPAddr addr1 = new IPAddr(pref);
+		IPAddr addr2 = new IPAddr(pref);
+		addr1.appendSegment(skm);
+		addr1.connect(prefFromUid(dkm - 1, this.l - pref.getLength(), this.n));
+		addr2.appendSegment(dkm);
+		addr2.connect(prefFromUid(skm, this.l - pref.getLength(), this.n));
+		Node source = this.getServer(addr1);
+		assert source != null;
+		Node target = this.getServer(addr2);
+		assert target != null;
+		Link l = source.getLink(target);
+		assert l != null;
+		Flow flow = new Flow(source, target);
+		flow.addLink(l);
+		return flow;
+	}
+
+	/**
+	 * DCellRouting function in the paper Assume all the link is not failed
+	 * 
+	 * @param source
+	 * @param target
+	 * @return
+	 * @author Hongze Zhao
+	 */
+	public Flow DCellRouting(Node source, Node target) {
+
+		IPAddr pref = IPAddr
+				.getCommonPrefix(source.getAddr(), target.getAddr());
+		if (pref.getLength() == this.l) {// in the same DCell0
+			return this.DCell0Link(source, target);
+		} else {
+			// in the different DCell_0
+			Flow interFlow = this.GetLink(pref,
+					source.getAddr().getSegment(pref.getLength()), target
+							.getAddr().getSegment(pref.getLength()));
+			Flow path1 = this.DCellRouting(source, interFlow.getSource());
+			Flow path2 = this.DCellRouting(interFlow.getTarget(), target);
+			path1.connect(interFlow);
+			path1.connect(path2);
+			return path1;
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see randy.BaseDCN#route(java.util.UUID, java.util.UUID)
 	 */
 	@Override
 	public RouteResult route(UUID sourceUUID, UUID targetUUID) {
 		// TODO Auto-generated method stub
-		return null;
+		Node source = this.getServer(sourceUUID);
+		Node target = this.getServer(targetUUID);
+		assert source != null && target != null;
+		return new RouteResult(this.DCellRouting(source, target), source,
+				target);
+		// TODO;
 	}
 
-	public static void main(String[] args){
+	public static void main(String[] args) {
 		// System.out.println("try construction");
 		// // new DCell(4, 0);
 		// new DCell(4, 1);
-		new DCell(4, 2);
+		new DCell(4, 3);
 		// System.out.println("construction is OK");
 		// int n = 8, l = 4;
 		// for (int i = 0; i <= l; i++) {

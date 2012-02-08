@@ -32,6 +32,7 @@ import randy.components.Node;
  */
 public abstract class BaseDCN implements IDCN {
 
+
 	private final Random ran = new Random();
 	/**
 	 * Servers
@@ -96,6 +97,18 @@ public abstract class BaseDCN implements IDCN {
 		}
 		return null;
 	}
+
+	/**
+	 * Get server by UUID
+	 * 
+	 * @param uuid
+	 * @return
+	 * @author Hongze Zhao
+	 */
+	public Node getServer(UUID uuid) {
+		return this.serverUUIDHashMap.get(uuid);
+	}
+
 
 	/**
 	 * Connect two nodes with one link with specified bandwidth
@@ -179,4 +192,8 @@ public abstract class BaseDCN implements IDCN {
 		}
 	}
 
+	@Override
+	public List<UUID> getServerUUIDs() {
+		return new ArrayList<UUID>(this.serverUUIDHashMap.keySet());
+	}
 }

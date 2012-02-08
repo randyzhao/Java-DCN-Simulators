@@ -15,6 +15,7 @@
 package randy.components;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -177,6 +178,10 @@ public class IPAddr {
 
 	public IPAddr(List<Integer> addrList) {
 		this.addrs = addrList;
+	}
+
+	public IPAddr(Integer[] addr) {
+		this.addrs = Arrays.asList(addr);
 	}
 
 	public IPAddr(IPAddr ip) {

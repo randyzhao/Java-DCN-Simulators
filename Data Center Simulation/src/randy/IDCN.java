@@ -14,6 +14,7 @@
  */
 package randy;
 
+import java.util.List;
 import java.util.UUID;
 
 import randy.components.Flow;
@@ -37,6 +38,13 @@ public interface IDCN {
 		private final Node source;
 		private final Node target;
 
+		/**
+		 * Used when route is successful
+		 * 
+		 * @param flow
+		 * @param source
+		 * @param target
+		 */
 		public RouteResult(Flow flow, Node source, Node target) {
 			this.successful = true;
 			this.flow = flow;
@@ -44,6 +52,12 @@ public interface IDCN {
 			this.target = target;
 		}
 
+		/**
+		 * Used when route is failed
+		 * 
+		 * @param source
+		 * @param target
+		 */
 		public RouteResult(Node source, Node target) {
 			this.successful = false;
 			this.flow = null;
@@ -110,4 +124,12 @@ public interface IDCN {
 	 * @author Hongze Zhao
 	 */
 	void randomFailLinks(double ration);
+
+	/**
+	 * Get the list of servers' UUIDs
+	 * 
+	 * @return
+	 * @author Hongze Zhao
+	 */
+	List<UUID> getServerUUIDs();
 }

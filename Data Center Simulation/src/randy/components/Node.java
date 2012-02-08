@@ -73,6 +73,24 @@ public class Node {
 		return this.name;
 	}
 
+	/**
+	 * Get link
+	 * 
+	 * @param neibor
+	 *            the neibor connected with the link
+	 * @return the link connect the neibor
+	 * @author Hongze Zhao
+	 */
+	public Link getLink(Node neibor) {
+		for (int i = 0; i < this.links.size(); i++) {
+			Link l = this.links.get(i);
+			if (l.getHead() == neibor || l.getTail() == neibor) {
+				return l;
+			}
+		}
+		return null;
+	}
+
 	public void addLink(Link l) {
 		this.links.add(l);
 	}
