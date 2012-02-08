@@ -51,6 +51,7 @@ public class IPAddrTest {
 	public void testParseAddrs() {
 		String ad = "1.2.3.4.5";
 		List<Integer> output = IPAddr.parseAddrs(ad);
+		Assert.assertTrue(output.size() == 5);
 		Integer[] actuals = new Integer[output.size()];
 		Assert.assertArrayEquals(new Integer[] { 1, 2, 3, 4, 5 },
 				output.toArray(actuals));

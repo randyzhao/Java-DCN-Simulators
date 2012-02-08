@@ -26,7 +26,7 @@ import java.util.List;
  */
 public class IPAddr {
 
-	private List<Integer> addrs = new ArrayList<Integer>();
+	private List<Integer> addrs = new LinkedList<Integer>();
 
 	/**
 	 * Parse IP address from a string the format should be
@@ -39,7 +39,7 @@ public class IPAddr {
 	 */
 	static public List<Integer> parseAddrs(String addrStr) {
 		List<Integer> output = new LinkedList<Integer>();
-		String[] s = addrStr.split(".");
+		String[] s = addrStr.split("\\.");// Note . should be translated to \\.
 		for (int i = 0; i < s.length; i++) {
 			output.add(Integer.parseInt(s[i]));
 		}
@@ -177,11 +177,11 @@ public class IPAddr {
 	}
 
 	public IPAddr(List<Integer> addrList) {
-		this.addrs = addrList;
+		this.addrs.addAll(addrList);
 	}
 
 	public IPAddr(Integer[] addr) {
-		this.addrs = Arrays.asList(addr);
+		this.addrs.addAll(Arrays.asList(addr));
 	}
 
 	public IPAddr(IPAddr ip) {
