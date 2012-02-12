@@ -89,7 +89,7 @@ public abstract class BaseDCN implements IDCN {
 	 * @author Hongze Zhao
 	 * @return
 	 */
-	protected Node getServer(IPAddr addr) {
+	public Node getServer(IPAddr addr) {
 		for (Node server : this.servers) {
 			if (server.getAddr().equals(addr)) {
 				return server;

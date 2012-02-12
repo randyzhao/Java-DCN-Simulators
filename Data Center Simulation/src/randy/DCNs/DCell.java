@@ -207,9 +207,10 @@ public class DCell extends BaseDCN {
 		IPAddr addr1 = new IPAddr(pref);
 		IPAddr addr2 = new IPAddr(pref);
 		addr1.appendSegment(skm);
-		addr1.connect(prefFromUid(dkm - 1, this.l - pref.getLength(), this.n));
+		addr1.connect(prefFromUid(dkm - 1, this.l - pref.getLength() - 1,
+				this.n));
 		addr2.appendSegment(dkm);
-		addr2.connect(prefFromUid(skm, this.l - pref.getLength(), this.n));
+		addr2.connect(prefFromUid(skm, this.l - pref.getLength() - 1, this.n));
 		Node source = this.getServer(addr1);
 		assert source != null;
 		Node target = this.getServer(addr2);

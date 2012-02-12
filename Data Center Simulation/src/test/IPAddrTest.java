@@ -149,7 +149,7 @@ public class IPAddrTest {
 	 */
 	@Test
 	public void testAppendAndCopy() {
-		IPAddr addr1 = this.a1.appendAndCopy(3, 4, 5);
+		IPAddr addr1 = this.a2.appendAndCopy(3, 4, 5);
 		Assert.assertEquals("1.2.3.4.5", addr1.toString());
 		IPAddr addr2 = addr1.appendAndCopy(7, 8, 9);
 		Assert.assertEquals("1.2.3.4.5.7.8.9", addr2.toString());
@@ -182,7 +182,7 @@ public class IPAddrTest {
 	 */
 	@Test
 	public void testIPAddrString() {
-		Assert.assertEquals("1.2.3.4.5", (new IPAddr("1.2.3.4.5")));
+		Assert.assertEquals("1.2.3.4.5", (new IPAddr("1.2.3.4.5")).toString());
 	}
 
 	/**
@@ -191,7 +191,8 @@ public class IPAddrTest {
 	@Test
 	public void testIPAddrListOfInteger() {
 		Integer[] temp = new Integer[] { 1, 2, 3, 4, 5 };
-		Assert.assertEquals("1.2.3.4.5", (new IPAddr(Arrays.asList(temp))));
+		Assert.assertEquals("1.2.3.4.5",
+				(new IPAddr(Arrays.asList(temp))).toString());
 	}
 
 	/**
