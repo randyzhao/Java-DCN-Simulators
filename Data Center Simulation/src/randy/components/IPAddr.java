@@ -200,4 +200,15 @@ public class IPAddr {
 		return sb.toString();
 	}
 
+	@Override
+	public int hashCode() {
+		int output = 0;
+		int temp = 1;
+		for (int i = 0; i < this.addrs.size(); i++) {
+			output += this.addrs.get(i) * temp;
+			temp *= 1000;
+		}
+		return output;
+	}
+
 }

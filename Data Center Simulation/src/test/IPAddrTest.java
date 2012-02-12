@@ -15,6 +15,7 @@
 package test;
 
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 
 import org.junit.Assert;
@@ -204,6 +205,20 @@ public class IPAddrTest {
 		IPAddr addr = new IPAddr(Arrays.asList(temp));
 		Assert.assertEquals("1.2.3.4.5", addr.toString());
 
+	}
+
+	@Test
+	public void testHashCode() {
+		HashSet<IPAddr> addrSet = new HashSet<IPAddr>();
+		for (int i = 0; i < 50; i++) {
+			for (int j = 0; j < 50; j++) {
+				for (int k = 0; k < 50; k++) {
+					addrSet.add(new IPAddr(new Integer[] { i, j, k }));
+					Assert.assertTrue(addrSet.contains(new IPAddr(
+							new Integer[] { i, j, k })));
+				}
+			}
+		}
 	}
 
 }

@@ -14,9 +14,7 @@
 */
 package randy.DCNs;
 
-import java.util.Collection;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.UUID;
 
 import randy.BaseDCN;
@@ -48,12 +46,12 @@ public class FatTree extends BaseDCN {
 			System.out.println("k should be an even number");
 			System.exit(1);
 		}
-		this.addComponents(k);
-		Collection<Node> cores = this.coreSwitches.values();
-		Iterator<Node> corei = cores.iterator();
-		while (corei.hasNext()) {
-			System.out.println(corei.next().getAddr().toString());
-		}
+		this.addComponents();
+		// Collection<Node> cores = this.coreSwitches.values();
+		// Iterator<Node> corei = cores.iterator();
+		// while (corei.hasNext()) {
+		// System.out.println(corei.next().getAddr().toString());
+		// }
 		this.connectAggeAndCore();
 		this.connectEdgeAndAgge();
 		this.connectServerAndEdge();
@@ -67,10 +65,10 @@ public class FatTree extends BaseDCN {
 	 *            the k value in the paper
 	 * @author Hongze Zhao
 	 */
-	private void addComponents(int k) {
+	private void addComponents() {
 		// add core switches
-		for (int i = 0; i < k / 2; i++) {
-			for (int j = 0; j < k / 2; j++) {
+		for (int i = 0; i < this.k / 2; i++) {
+			for (int j = 0; j < this.k / 2; j++) {
 				IPAddr addr = new IPAddr(new Integer[] { i, j });
 				Node core = new Node("core switches");
 				core.setAddr(addr);
@@ -80,8 +78,8 @@ public class FatTree extends BaseDCN {
 		}
 
 		// add agge switches
-		for (int i = 0; i < k / 2; i++) {
-			for (int j = 0; j < k / 2; j++) {
+		for (int i = 0; i < this.k; i++) {
+			for (int j = 0; j < this.k / 2; j++) {
 				IPAddr addr = new IPAddr(new Integer[] { i, j });
 				Node core = new Node("agge switches");
 				core.setAddr(addr);
@@ -91,8 +89,8 @@ public class FatTree extends BaseDCN {
 		}
 
 		// add edge switches
-		for (int i = 0; i < k / 2; i++) {
-			for (int j = 0; j < k / 2; j++) {
+		for (int i = 0; i < this.k; i++) {
+			for (int j = 0; j < this.k / 2; j++) {
 				IPAddr addr = new IPAddr(new Integer[] { i, j });
 				Node core = new Node("edge switches");
 				core.setAddr(addr);
@@ -102,9 +100,9 @@ public class FatTree extends BaseDCN {
 		}
 
 		// add servers
-		for (int i = 0; i < k / 2; i++) {
-			for (int j = 0; j < k / 2; j++) {
-				for (int l = 0; l < k / 2; l++) {
+		for (int i = 0; i < this.k; i++) {
+			for (int j = 0; j < this.k / 2; j++) {
+				for (int l = 0; l < this.k / 2; l++) {
 					IPAddr addr = new IPAddr(new Integer[] { i, j, l });
 					Node server = new Node("server");
 					server.setAddr(addr);
@@ -146,7 +144,8 @@ public class FatTree extends BaseDCN {
 			for (int aggev = 0; aggev < this.k / 2; aggev++){
 				Node agge = this.getAggeSwitch(new IPAddr(new Integer[] { pod,
 						aggev }));
-				assert agge != null;
+				assert agge != null : (new IPAddr(new Integer[] { pod, aggev }))
+						.toString();
 				for (int edgev = 0; edgev < this.k / 2; edgev++){
 					Node edge = this.getEdgeSwitch(new IPAddr(new Integer[] {
 							pod, edgev }));
