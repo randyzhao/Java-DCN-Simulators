@@ -97,7 +97,7 @@ public class DCell extends BaseDCN {
 				addr2.connect(prefFromUid(uid2, l - 1, n));
 				assert addr2.getLength() == this.l + 1 : "the addr len is "
 						+ addr2.getLength() + "\n it should be " + (this.l + 1);
-				this.connectNode(addr1, addr2, ConstantManager.LINK_BANDWIDTH);
+				this.connectServer(addr1, addr2, ConstantManager.LINK_BANDWIDTH);
 
 			}
 

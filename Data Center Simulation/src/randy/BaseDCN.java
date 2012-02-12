@@ -126,7 +126,7 @@ public abstract class BaseDCN implements IDCN {
 		n2.addLink(link);
 	}
 
-	protected void connectNode(IPAddr addr1, IPAddr addr2, double bandwidth) {
+	protected void connectServer(IPAddr addr1, IPAddr addr2, double bandwidth) {
 		Node server1 = this.getServer(addr1);
 		Node server2 = this.getServer(addr2);
 		assert (server1 != null) : "server1 is null, addr is "
