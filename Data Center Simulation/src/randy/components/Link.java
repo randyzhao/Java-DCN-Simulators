@@ -75,6 +75,28 @@ public class Link {
 	public List<Flow> getFlows() {
 		return this.flows;
 	}
+	
+	/**
+	 * Whether two links has one node in comman
+	 * 
+	 * @return
+	 * @author Hongze Zhao
+	 */
+	public boolean canConnect(Link link) {
+		return this.head.equals(link.head) || this.head.equals(link.tail)
+				|| this.tail.equals(link.head) || this.tail.equals(link.tail);
+	}
+	
+	/**
+	 * Whether this link contain the node
+	 * 
+	 * @param node
+	 * @return
+	 * @author Hongze Zhao
+	 */
+	public boolean contain(Node node) {
+		return this.head.equals(node) || this.tail.equals(node);
+	}
 
 	/**
 	 * attach a flow to this link
@@ -113,6 +135,19 @@ public class Link {
 	public void reset() {
 		this.failed = false;
 		this.flows.clear();
+	}
+
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+		sb.append(this.head.getName());
+		sb.append(" : ");
+		sb.append(this.head.getAddr().toString());
+		sb.append(" --- ");
+		sb.append(this.tail.getName());
+		sb.append(" : ");
+		sb.append(this.tail.getAddr().toString());
+		return sb.toString();
 	}
 
 }

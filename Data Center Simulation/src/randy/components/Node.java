@@ -112,4 +112,11 @@ public class Node {
 		this.uuid = UUID.randomUUID();
 		this.addr = null;
 	}
+
+	@Override
+	public boolean equals(Object obj) {
+		Node node = (Node) obj;
+		return this.uuid.equals(node.uuid);
+	}
+
 }

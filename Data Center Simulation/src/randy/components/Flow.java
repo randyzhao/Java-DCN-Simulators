@@ -59,6 +59,34 @@ public class Flow {
 	}
 
 	/**
+	 * Whether the link's sequence in links is in the order that the next link
+	 * has one comman node with the previous link
+	 * 
+	 * @return
+	 * @author Hongze Zhao
+	 */
+	public boolean isSorted(){
+		if (this.source.getAddr().toString().equals("0.0")
+				&& this.target.getAddr().toString().equals("1.0")) {
+			int a = 0;
+			a++;
+		}
+		Link headLink = this.links.get(0);
+		Link tailLink = this.links.get(this.links.size() - 1);
+		if (!headLink.contain(this.source)) {
+			return false;
+		}
+		if (!tailLink.contain(this.target)) {
+			return false;
+		}
+		for (int i = 1; i < this.links.size(); i++) {
+			if (!this.links.get(i).canConnect(this.links.get(i - 1))) {
+				return false;
+			}
+		}
+		return true;
+	}
+	/**
 	 * Get the bandwidth of this flow It is determined by the min average
 	 * bandwidth of each link in the links
 	 * 
@@ -117,6 +145,27 @@ public class Flow {
 	public Flow(Node source, Node target) {
 		this.source = source;
 		this.target = target;
+	}
+
+	public Flow(Flow flow) {
+		this.source = flow.source;
+		this.target = flow.target;
+		this.links.addAll(flow.links);
+	}
+
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+		sb.append("source is ");
+		sb.append(this.source.getAddr().toString());
+		sb.append(" target is ");
+		sb.append(this.target.getAddr().toString());
+		sb.append("  ");
+		for (int i = 0; i < this.links.size(); i++) {
+			sb.append(this.links.get(i).toString());
+			sb.append("  ");
+		}
+		return sb.toString();
 	}
 
 }

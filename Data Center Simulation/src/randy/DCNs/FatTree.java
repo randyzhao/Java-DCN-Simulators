@@ -1,17 +1,17 @@
 /**  
-* Filename:    FatTree.java  
-* Description:   
-* Copyright:   Copyright (c)2011 
-* Company:    company 
-* @author:     Hongze Zhao 
-* @version:    1.0  
-* Create at:   Feb 12, 2012 8:24:01 PM  
-*  
-* Modification History:  
-* Date         Author      Version     Description  
-* ------------------------------------------------------------------  
-* Feb 12, 2012    Hongze Zhao   1.0         1.0 Version  
-*/
+ * Filename:    FatTree.java  
+ * Description:   
+ * Copyright:   Copyright (c)2011 
+ * Company:    company 
+ * @author:     Hongze Zhao 
+ * @version:    1.0  
+ * Create at:   Feb 12, 2012 8:24:01 PM  
+ *  
+ * Modification History:  
+ * Date         Author      Version     Description  
+ * ------------------------------------------------------------------  
+ * Feb 12, 2012    Hongze Zhao   1.0         1.0 Version  
+ */
 package randy.DCNs;
 
 import java.util.ArrayList;
@@ -27,9 +27,8 @@ import randy.components.Link;
 import randy.components.Node;
 
 /**
- *
- * @author Hongze Zhao
- * Create At : Feb 12, 2012 8:24:01 PM
+ * 
+ * @author Hongze Zhao Create At : Feb 12, 2012 8:24:01 PM
  */
 public class FatTree extends BaseDCN {
 
@@ -41,17 +40,17 @@ public class FatTree extends BaseDCN {
 	/**
 	 * Whether the preRouteCalculation has done yet
 	 */
-	private final boolean preRoute = false;
+	private boolean preRoute = false;
 
 	/**
 	 * Flows between agge switches under different pods Note only same sequence
 	 * agge switches is connected by core switches
 	 */
-	private final List<List<Flow>> flowsBetweenAggeSwitches = new ArrayList<List<Flow>>();
+	public final List<List<Flow>> flowsBetweenAggeSwitches = new ArrayList<List<Flow>>();
 	/**
 	 * Flows between edge switches under different pods
 	 */
-	private final List<List<Flow>> flowsBetweenEdgeSwitchesDiffPod = new ArrayList<List<Flow>>();
+	public final List<List<Flow>> flowsBetweenEdgeSwitchesDiffPod = new ArrayList<List<Flow>>();
 	/**
 	 * Core switch[i, j] connects all pods' i th agge switchs' j th ports
 	 */
@@ -128,7 +127,7 @@ public class FatTree extends BaseDCN {
 					this.addServer(server);
 				}
 			}
-				}
+		}
 	}
 
 	/**
@@ -159,13 +158,13 @@ public class FatTree extends BaseDCN {
 	 * @author Hongze Zhao
 	 */
 	private void connectEdgeAndAgge() {
-		for (int pod = 0; pod < this.k; pod++){
-			for (int aggev = 0; aggev < this.k / 2; aggev++){
+		for (int pod = 0; pod < this.k; pod++) {
+			for (int aggev = 0; aggev < this.k / 2; aggev++) {
 				Node agge = this.getAggeSwitch(new IPAddr(new Integer[] { pod,
 						aggev }));
 				assert agge != null : (new IPAddr(new Integer[] { pod, aggev }))
 						.toString();
-				for (int edgev = 0; edgev < this.k / 2; edgev++){
+				for (int edgev = 0; edgev < this.k / 2; edgev++) {
 					Node edge = this.getEdgeSwitch(new IPAddr(new Integer[] {
 							pod, edgev }));
 					assert edge != null;
@@ -187,7 +186,7 @@ public class FatTree extends BaseDCN {
 				Node core = this.getCoreSwitch(new IPAddr(
 						new Integer[] { i, j }));
 				assert core != null : "get core[" + i + " , " + j + "] fails";
-				for (int pod = 0; pod < this.k / 2; pod++) {
+				for (int pod = 0; pod < this.k; pod++) {
 					Node agge = this.getAggeSwitch(new IPAddr(new Integer[] {
 							pod, i }));
 					assert agge != null;
@@ -270,21 +269,22 @@ public class FatTree extends BaseDCN {
 	 * 
 	 * @author Hongze Zhao
 	 */
-	public void preRouteCalculation(){
-		//valid flows between agge switches under different pods
-		for (int pod1 = 0; pod1 < this.k; pod1++){
+	public void preRouteCalculation() {
+		// valid flows between agge switches under different pods
+		for (int pod1 = 0; pod1 < this.k; pod1++) {
 			for (int pod2 = 0; pod2 < this.k; pod2++) {
-				for (int i = 0; i < this.k / 2; i++){
+				for (int i = 0; i < this.k / 2; i++) {
 					if (pod1 == pod2) {
 						this.flowsBetweenAggeSwitches
 								.add(new ArrayList<Flow>());
 						continue;
 					}
 					if (pod1 > pod2) {
-						//reverse all the flows
-						List<Flow> f1 = this.getFlowsBetweenAggeSwitches(pod2, pod1, i);
+						// reverse all the flows
+						List<Flow> f1 = this.getFlowsBetweenAggeSwitches(pod2,
+								pod1, i);
 						List<Flow> flows = new ArrayList<Flow>();
-						for (int j = 0; j < f1.size(); j++){
+						for (int j = 0; j < f1.size(); j++) {
 							flows.add(f1.get(j).reverseAndCopy());
 						}
 						this.flowsBetweenAggeSwitches.add(flows);
@@ -295,10 +295,10 @@ public class FatTree extends BaseDCN {
 							pod1, i }));
 					Node agge2 = this.getAggeSwitch(new IPAddr(new Integer[] {
 							pod2, i }));
-					for (int j = 0; j < this.k / 2; j++){
+					for (int j = 0; j < this.k / 2; j++) {
 						Link l1 = agge1.getLinks().get(j);
 						Link l2 = agge2.getLinks().get(j);
-						if (!l1.isFailed() && !l2.isFailed()){
+						if (!l1.isFailed() && !l2.isFailed()) {
 							Flow flow = new Flow(agge1, agge2);
 							flow.addLink(l1);
 							flow.addLink(l2);
@@ -314,44 +314,49 @@ public class FatTree extends BaseDCN {
 			for (int pod2 = 0; pod2 < this.k; pod2++) {
 				for (int i = 0; i < this.k / 2; i++) {
 					for (int j = 0; j < this.k / 2; j++) {
-
-						// pod1 < pod2
-						Node edge1 = this.getEdgeSwitch(new IPAddr(
-								new Integer[] { pod1, i }));
-						Node edge2 = this.getEdgeSwitch(new IPAddr(
-								new Integer[] { pod2, j }));
-						List<Flow> flows = new ArrayList<Flow>();
-						for (int l = 0; l < this.k / 2; l++) {
-							// the sequence number of agge switches
-							List<Flow> tempFlows = new ArrayList<Flow>();
-							Node agge1 = this.getAggeSwitch(new IPAddr(
-									new Integer[] { pod1, l }));
-							Node agge2 = this.getAggeSwitch(new IPAddr(
-									new Integer[] { pod2, l }));
-							Link l1 = edge1.getLinks().get(l);
-							Link l2 = edge2.getLinks().get(l);
-							if (!l1.isFailed() && !l2.isFailed()) {
-								Flow f1 = new Flow(edge1, agge1);
-								f1.addLink(l1);
-								Flow f2 = new Flow(agge2, edge2);
-								f2.addLink(l2);
-								List<Flow> mediaFlows = this
-										.getFlowsBetweenAggeSwitches(pod1,
-												pod2, l);
-								for (Flow flow : mediaFlows) {
-									f1.connect(flow);
-									f1.connect(f2);
-									tempFlows.add(f1);
+						if (pod1 == pod2) {
+							this.flowsBetweenEdgeSwitchesDiffPod
+									.add(new ArrayList<Flow>());
+						} else {
+							// pod1 < pod2
+							Node edge1 = this.getEdgeSwitch(new IPAddr(
+									new Integer[] { pod1, i }));
+							Node edge2 = this.getEdgeSwitch(new IPAddr(
+									new Integer[] { pod2, j }));
+							List<Flow> flows = new ArrayList<Flow>();
+							for (int l = 0; l < this.k / 2; l++) {
+								// the sequence number of agge switches
+								List<Flow> tempFlows = new ArrayList<Flow>();
+								Node agge1 = this.getAggeSwitch(new IPAddr(
+										new Integer[] { pod1, l }));
+								Node agge2 = this.getAggeSwitch(new IPAddr(
+										new Integer[] { pod2, l }));
+								Link l1 = edge1.getLinks().get(l);
+								Link l2 = edge2.getLinks().get(l);
+								if (!l1.isFailed() && !l2.isFailed()) {
+									Flow f1 = new Flow(edge1, agge1);
+									f1.addLink(l1);
+									Flow f2 = new Flow(agge2, edge2);
+									f2.addLink(l2);
+									List<Flow> mediaFlows = this
+											.getFlowsBetweenAggeSwitches(pod1,
+													pod2, l);
+									for (Flow flow : mediaFlows) {
+										Flow temp = new Flow(f1);
+										temp.connect(flow);
+										temp.connect(f2);
+										tempFlows.add(temp);
+									}
 								}
+								flows.addAll(tempFlows);
 							}
-							flows.addAll(tempFlows);
+							this.flowsBetweenEdgeSwitchesDiffPod.add(flows);
 						}
-						this.flowsBetweenEdgeSwitchesDiffPod.add(flows);
 					}
-
 				}
 			}
 		}
+		this.preRoute = true;
 	}
 
 	/*
