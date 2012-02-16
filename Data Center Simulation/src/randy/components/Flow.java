@@ -86,6 +86,20 @@ public class Flow {
 	public List<Link> getLinks() {
 		return this.links;
 	}
+	
+	/**
+	 * Reverse the flow and copy to a new flow
+	 * 
+	 * @return
+	 * @author Hongze Zhao
+	 */
+	public Flow reverseAndCopy() {
+		Flow flow = new Flow(this.target, this.source);
+		for (int i = this.links.size() - 1; i >= 0; i--) {
+			flow.addLink(this.links.get(i));
+		}
+		return flow;
+	}
 
 	/**
 	 * Connect this and flow Ensure this's target == flow' soruce

@@ -33,6 +33,7 @@ import randy.components.Node;
 public abstract class BaseDCN implements IDCN {
 
 
+
 	private final Random ran = new Random();
 	/**
 	 * Servers
@@ -195,5 +196,19 @@ public abstract class BaseDCN implements IDCN {
 	@Override
 	public List<UUID> getServerUUIDs() {
 		return new ArrayList<UUID>(this.serverUUIDHashMap.keySet());
+	}
+
+	@Override
+	public void reset() {
+		for (Link l : this.links){
+			l.reset();
+		}
+		for (Node server : this.servers) {
+			server.reset();
+		}
+		for (Node sw : this.switches) {
+			sw.reset();
+		}
+		
 	}
 }

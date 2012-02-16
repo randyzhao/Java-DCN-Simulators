@@ -99,6 +99,14 @@ public class Node {
 		return this.links;
 	}
 
+	/**
+	 * Reset a node's status. Include failure
+	 * 
+	 * @author Hongze Zhao
+	 */
+	public void reset() {
+		this.failed = false;
+	}
 	public Node(String name) {
 		this.name = name;
 		this.uuid = UUID.randomUUID();

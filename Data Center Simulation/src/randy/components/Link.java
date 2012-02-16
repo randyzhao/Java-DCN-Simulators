@@ -105,4 +105,14 @@ public class Link {
 		this.uuid = UUID.randomUUID();
 	}
 
+	/**
+	 * Reset a link's status. Include flow attachment and failure
+	 * 
+	 * @author Hongze Zhao
+	 */
+	public void reset() {
+		this.failed = false;
+		this.flows.clear();
+	}
+
 }

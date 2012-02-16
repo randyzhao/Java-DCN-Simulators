@@ -14,11 +14,14 @@
 */
 package randy;
 
+import java.util.Random;
+
 /**
  * Manager of the constant
  * 
  * @author Hongze Zhao Create At : Feb 6, 2012 10:17:39 PM
  */
 public class ConstantManager {
+	public static final Random ran = new Random();
 	public static final double LINK_BANDWIDTH = 1000;
 }

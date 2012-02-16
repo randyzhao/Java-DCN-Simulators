@@ -26,7 +26,18 @@ import java.util.List;
  */
 public class IPAddr {
 
-	private List<Integer> addrs = new LinkedList<Integer>();
+	static public IPAddr getCommonPrefix(IPAddr a1, IPAddr a2) {
+		List<Integer> temp = new LinkedList<Integer>();
+		int length = Math.min(a1.getLength(), a2.getLength());
+		for (int i = 0; i < length; i++) {
+			if (a1.getSegment(i) == a2.getSegment(i)) {
+				temp.add(a1.getSegment(i));
+			} else {
+				break;
+			}
+		}
+		return new IPAddr(temp);
+	}
 
 	/**
 	 * Parse IP address from a string the format should be
@@ -46,79 +57,25 @@ public class IPAddr {
 		return output;
 	}
 
-	static public IPAddr getCommonPrefix(IPAddr a1, IPAddr a2) {
-		List<Integer> temp = new LinkedList<Integer>();
-		int length = Math.min(a1.getLength(), a2.getLength());
-		for (int i = 0; i < length; i++) {
-			if (a1.getSegment(i) == a2.getSegment(i)) {
-				temp.add(a1.getSegment(i));
-			} else {
-				break;
-			}
-		}
-		return new IPAddr(temp);
-	}
-	/**
-	 * Get a segment of the IP addrs
-	 * 
-	 * @param segID
-	 *            the id of the segment, which is started from 0
-	 * @return the content of the given segment
-	 * @author Hongze Zhao
-	 */
-	public int getSegment(int segID) {
-		return this.addrs.get(segID);
+	private List<Integer> addrs = new LinkedList<Integer>();
+
+	public IPAddr() {
+		this.addrs = new ArrayList<Integer>();
 	}
 
-	/**
-	 * Insert a segment to the head
-	 * 
-	 * @param content
-	 * @author Hongze Zhao
-	 */
-	public void insertSegment2Head(int content) {
-		this.addrs.add(0, content);
+	public IPAddr(Integer[] addr) {
+		this.addrs.addAll(Arrays.asList(addr));
 	}
-	/**
-	 * Append a segment to the IP addr
-	 * 
-	 * @param content
-	 *            the content of the segment
-	 * @author Hongze Zhao
-	 */
-	public void appendSegment(int content) {
-		this.addrs.add(content);
+	public IPAddr(IPAddr ip) {
+		this.addrs.addAll(ip.addrs);
 	}
 
-	/**
-	 * Remove a segment from the IP addr
-	 * 
-	 * @author Hongze Zhao
-	 */
-	public void minusSegment() {
-		this.addrs.remove(this.addrs.size() - 1);
+	public IPAddr(List<Integer> addrList) {
+		this.addrs.addAll(addrList);
 	}
 
-	/**
-	 * the number of segments
-	 * 
-	 * @return
-	 * @author Hongze Zhao
-	 */
-	public int getLength() {
-		return this.addrs.size();
-	}
-
-	/**
-	 * Connect a IPAddrjj
-	 * 
-	 * @param ad
-	 * @author Hongze Zhao
-	 */
-	public void connect(IPAddr ad) {
-		for (int i = 0; i < ad.addrs.size(); i++) {
-			this.addrs.add(ad.addrs.get(i));
-		}
+	public IPAddr(String addrStr) {
+		this.addrs = IPAddr.parseAddrs(addrStr);
 	}
 
 	/**
@@ -135,6 +92,29 @@ public class IPAddr {
 			addr.add(addrList[i]);
 		}
 		return new IPAddr(addr);
+	}
+
+	/**
+	 * Append a segment to the IP addr
+	 * 
+	 * @param content
+	 *            the content of the segment
+	 * @author Hongze Zhao
+	 */
+	public void appendSegment(int content) {
+		this.addrs.add(content);
+	}
+
+	/**
+	 * Connect a IPAddrjj
+	 * 
+	 * @param ad
+	 * @author Hongze Zhao
+	 */
+	public void connect(IPAddr ad) {
+		for (int i = 0; i < ad.addrs.size(); i++) {
+			this.addrs.add(ad.addrs.get(i));
+		}
 	}
 
 	/**
@@ -168,24 +148,56 @@ public class IPAddr {
 		}
 		return true;
 	}
-
-	public IPAddr() {
-		this.addrs = new ArrayList<Integer>();
-	}
-	public IPAddr(String addrStr) {
-		this.addrs = IPAddr.parseAddrs(addrStr);
-	}
-
-	public IPAddr(List<Integer> addrList) {
-		this.addrs.addAll(addrList);
+	/**
+	 * the number of segments
+	 * 
+	 * @return
+	 * @author Hongze Zhao
+	 */
+	public int getLength() {
+		return this.addrs.size();
 	}
 
-	public IPAddr(Integer[] addr) {
-		this.addrs.addAll(Arrays.asList(addr));
+	/**
+	 * Get a segment of the IP addrs
+	 * 
+	 * @param segID
+	 *            the id of the segment, which is started from 0
+	 * @return the content of the given segment
+	 * @author Hongze Zhao
+	 */
+	public int getSegment(int segID) {
+		return this.addrs.get(segID);
 	}
 
-	public IPAddr(IPAddr ip) {
-		this.addrs.addAll(ip.addrs);
+	@Override
+	public int hashCode() {
+		int output = 0;
+		int temp = 1;
+		for (int i = 0; i < this.addrs.size(); i++) {
+			output += this.addrs.get(i) * temp;
+			temp *= 1000;
+		}
+		return output;
+	}
+
+	/**
+	 * Insert a segment to the head
+	 * 
+	 * @param content
+	 * @author Hongze Zhao
+	 */
+	public void insertSegment2Head(int content) {
+		this.addrs.add(0, content);
+	}
+
+	/**
+	 * Remove a segment from the IP addr
+	 * 
+	 * @author Hongze Zhao
+	 */
+	public void minusSegment() {
+		this.addrs.remove(this.addrs.size() - 1);
 	}
 
 	@Override
@@ -198,17 +210,6 @@ public class IPAddr {
 			sb.append(this.addrs.get(i));
 		}
 		return sb.toString();
-	}
-
-	@Override
-	public int hashCode() {
-		int output = 0;
-		int temp = 1;
-		for (int i = 0; i < this.addrs.size(); i++) {
-			output += this.addrs.get(i) * temp;
-			temp *= 1000;
-		}
-		return output;
 	}
 
 }

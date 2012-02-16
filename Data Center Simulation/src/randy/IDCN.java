@@ -126,6 +126,12 @@ public interface IDCN {
 	void randomFailLinks(double ration);
 
 	/**
+	 * Reset all elements' status Include failure, flow assignment
+	 * 
+	 * @author Hongze Zhao
+	 */
+	void reset();
+	/**
 	 * Get the list of servers' UUIDs
 	 * 
 	 * @return
