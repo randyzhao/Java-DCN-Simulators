@@ -42,7 +42,7 @@ public class FatTreeTest {
 	 */
 	@Before
 	public void setUp() throws Exception {
-		this.fat = new FatTree(4);
+		this.fat = new FatTree(12);
 	}
 
 	/**
