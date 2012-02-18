@@ -51,9 +51,9 @@ public class FailureSimulator extends GeneralSimulator {
 	 * @author Hongze Zhao	
 	 */
 	public static void main(String[] args) {
-		for (double sfr = 0; sfr < 0.5; sfr += 0.05) {
-			FailureSimulator sim = new FailureSimulator(sfr, 0, 0, new FatTree(
-					12));
+		for (double sfr = 0; sfr < 1.001; sfr += 0.05) {
+			FailureSimulator sim = new FailureSimulator(0, 0, sfr, new FatTree(
+					10));
 			sim.initialize();
 			sim.run();
 			try {
