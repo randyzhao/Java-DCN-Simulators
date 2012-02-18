@@ -58,6 +58,13 @@ public class BCubeTest {
 		}
 	}
 
+	private int pow(int base, int power) {
+		int temp = 1;
+		for (int i = 0; i < power; i++) {
+			temp *= base;
+		}
+		return temp;
+	}
 	/**
 	 * Test method for {@link randy.DCNs.BCube#BCube(int, int)}.
 	 */
@@ -65,7 +72,15 @@ public class BCubeTest {
 	public void testBCube() {
 		for (int i = 2; i <= 8; i += 2) {
 			for (int j = 0; j < 5; j++) {
-				new BCube(i, j);
+				BCube bcube = new BCube(i, j);
+				Assert.assertTrue(bcube.serversCount() == this.pow(i, j + 1));
+				Assert.assertTrue(
+						"i is " + i + " j is " + j + " Expect : "
+								+ this.pow(i, j)
+						* (j + 1)
+						+ " Actual : " + bcube.switchesCount(),
+						bcube.switchesCount() == this.pow(i, j)
+						* (j + 1));
 			}
 		}
 	}

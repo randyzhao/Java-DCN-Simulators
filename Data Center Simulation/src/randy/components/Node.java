@@ -41,7 +41,7 @@ public class Node {
 	/**
 	 * The address of the node
 	 */
-	private IPAddr addr;
+	private IPAddr addr = new IPAddr();
 
 	public final boolean isFailed() {
 		return this.failed;

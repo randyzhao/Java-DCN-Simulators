@@ -22,8 +22,6 @@ import java.util.UUID;
 
 import randy.BaseDCN;
 import randy.ConstantManager;
-import randy.FailureSimulator;
-import randy.ISimulator;
 import randy.components.Flow;
 import randy.components.IPAddr;
 import randy.components.Link;
@@ -86,7 +84,8 @@ public class BCube extends BaseDCN {
 				for (int i = 0; i < n; i++) {
 					BCubeCell cell = new BCubeCell(this.k - 1, this.n);
 					cell.addPrefix(i);
-					this.servers.addAll(cell.getServers());
+					this.servers.addAll(cell.servers);
+					this.switches.addAll(cell.switches);
 					cells.add(cell);
 				}
 				int cellServersCount = cells.get(0).getServers().size();
@@ -344,22 +343,42 @@ public class BCube extends BaseDCN {
 		assert false : "this code should not be executed";
 		return null;
 	}
+
+	public int switchesCount() {
+		return this.switches.size();
+	}
+
+	public int serversCount() {
+		return this.servers.size();
+	}
 	/**
 	 * @param args
 	 * @author Hongze Zhao
 	 */
 	public static void main(String[] args) {
-		for (double rat = 0; rat < 1.01; rat += 0.1) {
-			ISimulator sim = new FailureSimulator(0, rat, 0, new BCube(4, 2));
-			sim.initialize();
-			sim.run();
-			try {
-				System.out.println(sim.getMetric("ABT") + " "
-						+ sim.getMetric("SuccCount"));
-			} catch (Exception ex) {
-				System.out.println(ex.getMessage());
-			}
-		}
+		new BCube(2, 1);
+
+		// ISimulator sim = new FailureSimulator(1.0, 0, 0, new BCube(4, 2));
+		// sim.initialize();
+		// sim.run();
+		// try {
+		// System.out.println(sim.getMetric("ABT") + " "
+		// + sim.getMetric("SuccCount"));
+		// } catch (Exception ex) {
+		// System.out.println(ex.getMessage());
+		// }
+
+		// for (double rat = 0; rat < 1.01; rat += 0.1) {
+		// ISimulator sim = new FailureSimulator(rat, 0, 0, new BCube(4, 2));
+		// sim.initialize();
+		// sim.run();
+		// try {
+		// System.out.println(sim.getMetric("ABT") + " "
+		// + sim.getMetric("SuccCount"));
+		// } catch (Exception ex) {
+		// System.out.println(ex.getMessage());
+		// }
+		// }
 
 	}
 
