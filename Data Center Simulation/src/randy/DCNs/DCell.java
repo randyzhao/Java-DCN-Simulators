@@ -207,16 +207,20 @@ public class DCell extends BaseDCN {
 		IPAddr addr1 = new IPAddr(pref);
 		IPAddr addr2 = new IPAddr(pref);
 		addr1.appendSegment(skm);
-		addr1.connect(prefFromUid(dkm - 1, this.l - pref.getLength() - 1,
+		addr1.connect(prefFromUid(dkm < skm ? dkm : dkm - 1,
+				this.l - pref.getLength() - 1,
 				this.n));
 		addr2.appendSegment(dkm);
-		addr2.connect(prefFromUid(skm, this.l - pref.getLength() - 1, this.n));
+		addr2.connect(prefFromUid(skm < dkm ? skm : skm - 1,
+				this.l - pref.getLength() - 1, this.n));
 		Node source = this.getServer(addr1);
-		assert source != null;
+		assert source != null : "addr1 is " + addr1.toString();
 		Node target = this.getServer(addr2);
-		assert target != null;
+		assert target != null : "addr1 is " + addr1.toString() + " addr2 is "
+				+ addr2.toString();
 		Link l = source.getLink(target);
-		assert l != null;
+		assert l != null : "addr1 is " + addr1.toString() + " addr2 is "
+				+ addr2.toString();
 		Flow flow = new Flow(source, target);
 		flow.addLink(l);
 		return flow;
@@ -231,7 +235,9 @@ public class DCell extends BaseDCN {
 	 * @author Hongze Zhao
 	 */
 	public Flow DCellRouting(Node source, Node target) {
-
+		if (source.getAddr().equals(target.getAddr())) {
+			return new Flow(source, target);
+		}
 		IPAddr pref = IPAddr
 				.getCommonPrefix(source.getAddr(), target.getAddr());
 		if (pref.getLength() == this.l) {// in the same DCell0
@@ -241,6 +247,7 @@ public class DCell extends BaseDCN {
 			Flow interFlow = this.GetLink(pref,
 					source.getAddr().getSegment(pref.getLength()), target
 							.getAddr().getSegment(pref.getLength()));
+			assert interFlow != null;
 			Flow path1 = this.DCellRouting(source, interFlow.getSource());
 			Flow path2 = this.DCellRouting(interFlow.getTarget(), target);
 			path1.connect(interFlow);

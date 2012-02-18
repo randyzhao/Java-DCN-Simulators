@@ -134,7 +134,7 @@ public abstract class GeneralSimulator implements ISimulator {
 			RouteResult result = this.dcn.route(pair.getHome(), pair.getAway());
 			if (result.isSuccessful()) {
 				this.flows.add(result.getFlow());
-				System.out.println(result.getFlow().toString());
+				// System.out.println(result.getFlow().toString());
 				assert result.getFlow().isValid();
 				this.attachFlow(result);
 				this.successfulCount++;

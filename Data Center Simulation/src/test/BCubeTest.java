@@ -49,7 +49,10 @@ public class BCubeTest {
 	public void testRoute() {
 		List<UUID> uuids = this.bcube.getServerUUIDs();
 		for (int i = 0; i < uuids.size(); i++) {
-			for (int j = i + 1; j < uuids.size(); j++) {
+			for (int j = 0; j < uuids.size(); j++) {
+				if (i == j) {
+					continue;
+				}
 				RouteResult result = this.bcube.route(uuids.get(i),
 						uuids.get(j));
 				Assert.assertTrue(result.isSuccessful());
