@@ -73,7 +73,6 @@ public class IPAddr {
 	public IPAddr(List<Integer> addrList) {
 		this.addrs.addAll(addrList);
 	}
-
 	public IPAddr(String addrStr) {
 		this.addrs = IPAddr.parseAddrs(addrStr);
 	}
@@ -94,6 +93,9 @@ public class IPAddr {
 		return new IPAddr(addr);
 	}
 
+	public void setSegment(int seg, int content) {
+		this.addrs.set(seg, content);
+	}
 	/**
 	 * Append a segment to the IP addr
 	 * 

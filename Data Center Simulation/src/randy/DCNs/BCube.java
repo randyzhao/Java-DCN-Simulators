@@ -16,12 +16,17 @@ package randy.DCNs;
 
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
 
 import randy.BaseDCN;
 import randy.ConstantManager;
+import randy.FailureSimulator;
+import randy.ISimulator;
+import randy.components.Flow;
 import randy.components.IPAddr;
+import randy.components.Link;
 import randy.components.Node;
 
 /**
@@ -104,16 +109,6 @@ public class BCube extends BaseDCN {
 			return this.switches;
 		}
 		/**
-		 * Get the number of servers
-		 * 
-		 * @return
-		 * @author Hongze Zhao
-		 */
-		public int serversCount() {
-			return this.servers.size();
-		}
-
-		/**
 		 * Add prefix to all its servers
 		 * 
 		 * @param prefix
@@ -143,7 +138,7 @@ public class BCube extends BaseDCN {
 	 * @param k
 	 * @param n
 	 */
-	public BCube(int k, int n) {
+	public BCube(int n, int k) {
 		BCubeCell cell = new BCubeCell(k, n);
 		this.k = k;
 		this.n = n;
@@ -162,16 +157,209 @@ public class BCube extends BaseDCN {
 	 */
 	@Override
 	public RouteResult route(UUID sourceUUID, UUID targetUUID) {
-		// TODO Auto-generated method stub
-		return null;
+		List<Flow> flows = this.buildFlowSet(this.getServer(sourceUUID),
+				this.getServer(targetUUID));
+		if (flows.isEmpty()) {
+			return new RouteResult(this.getServer(sourceUUID),
+					this.getServer(targetUUID));
+		}
+		return new RouteResult(flows.get(ConstantManager.ran.nextInt(flows
+				.size())), this.getServer(sourceUUID),
+				this.getServer(targetUUID));
+
 	}
 
 	/**
+	 * Build all valid flow set from souce to target It is called by the
+	 * function route
+	 * 
+	 * @param source
+	 * @param target
+	 * @return
+	 * @author Hongze Zhao
+	 */
+	private List<Flow> buildFlowSet(Node source, Node target) {
+		List<Flow> flowSet = new LinkedList<Flow>();
+		IPAddr sourceAddr = source.getAddr();
+		IPAddr targetAddr = target.getAddr();
+		assert sourceAddr.getLength() == targetAddr.getLength();
+		for (int i = 0; i < sourceAddr.getLength(); i++) {
+			Flow flow;
+			if (sourceAddr.getSegment(i) != targetAddr.getSegment(i)) {
+				flow = this.DCRouting(sourceAddr, targetAddr, i);
+			} else {
+				flow = this.AltDCRouting(sourceAddr, targetAddr, i,
+						this.neiborAddr(sourceAddr, i));
+			}
+			if (flow != null) {
+				flowSet.add(flow);
+				assert flow.isValid();
+			}
+		}
+		return flowSet;
+	}
+
+	/**
+	 * Get a neibor of addr at level level
+	 * 
+	 * @param addr
+	 * @param level
+	 * @return
+	 * @author Hongze Zhao
+	 */
+	private IPAddr neiborAddr(IPAddr addr, int level) {
+		IPAddr out = new IPAddr(addr);
+		int ran = ConstantManager.ran.nextInt(this.n - 1);
+		if (ran >= out.getSegment(level)) {
+			ran++;
+		}
+		out.setSegment(level, ran);
+		return out;
+	}
+	private Flow DCRouting(IPAddr sourceAddr, IPAddr targetAddr, int i) {
+		int m = this.k;
+		int permu[] = new int[this.k + 1];
+		for (int j = i; j >= i - this.k; j--) {
+			int temp = j;
+			while (temp < 0) {
+				temp += this.k + 1;
+			}
+			int resi = temp % (this.k + 1);
+			permu[m] = resi;
+			m--;
+		}
+		return this.BCubeRouting(sourceAddr, targetAddr, permu);
+	}
+
+	private Flow AltDCRouting(IPAddr sourceAddr, IPAddr targetAddr, int i,
+			IPAddr neiborAddr) {
+		Flow flow = new Flow(this.getServer(sourceAddr),
+				this.getServer(sourceAddr));
+		int m = this.k;
+		int[] permu = new int[this.k + 1];
+		for (int j = i - 1; j >= i - 1 - this.k; j--) {
+			int temp = j;
+			while (temp < 0) {
+				temp += this.k + 1;
+			}
+			int resi = temp % (this.k + 1);
+			permu[m] = resi;
+			m--;
+		}
+		assert this.getServer(sourceAddr) != null : sourceAddr.toString()
+				+ " is not founded";
+		assert this.getServer(neiborAddr) != null : neiborAddr.toString()
+				+ " is not founded";
+		Flow flow1 = this.getNeiborServerFlow(this.getServer(sourceAddr),
+				this.getServer(neiborAddr));
+		if (flow1 == null) {
+			return null;
+		}
+		flow.connect(flow1);
+		Flow flow2 = this.BCubeRouting(neiborAddr, targetAddr, permu);
+		if (flow2 == null) {
+			return null;
+		}
+		flow.connect(flow2);
+		return flow;
+	}
+	/**
+	 * Fina a path from source to target the algorithm corrects one digit at one
+	 * step The digit correcting order is decided by the predefined permutation
+	 * permu
+	 * 
+	 * @param sourceAddr
+	 * @param targetAddr
+	 * @param permu
+	 * @return
+	 * @author Hongze Zhao
+	 */
+	private Flow BCubeRouting(IPAddr sourceAddr, IPAddr targetAddr, int[] permu) {
+		Flow flow = new Flow(this.getServer(sourceAddr),
+				this.getServer(sourceAddr));
+		
+		IPAddr iNode = new IPAddr(sourceAddr);
+		for (int i = this.k; i >= 0; i--){
+			if (sourceAddr.getSegment(permu[i]) != targetAddr.getSegment(permu[i])){
+				iNode.setSegment(permu[i], targetAddr.getSegment(permu[i]));
+				if (!this.appendServer(flow, flow.getTarget(),
+						this.getServer(iNode))) {
+					return null;
+				}
+			}
+		}
+		return flow;
+	}
+
+	/**
+	 * Append two links from s1 to s2 to the flow Called by the function
+	 * BCubeRouting
+	 * 
+	 * @param flow
+	 * @param server
+	 * @return
+	 * @author Hongze Zhao
+	 */
+	private boolean appendServer(Flow flow, Node s1, Node s2) {
+		Flow tempFlow = this.getNeiborServerFlow(s1, s2);
+		if (tempFlow == null) {
+			return false;
+		}
+		flow.connect(tempFlow);
+		return true;
+	}
+
+	/**
+	 * Get flow between two neibor server which is linked by a switch
+	 * 
+	 * @param s1
+	 * @param s2
+	 * @return
+	 * @author Hongze Zhao
+	 */
+	private Flow getNeiborServerFlow(Node s1, Node s2) {
+		assert s1 != null && s2 != null;
+		IPAddr addr1 = s1.getAddr();
+		IPAddr addr2 = s2.getAddr();
+		assert addr1 != null && addr2 != null;
+		int temp = 0;
+		for (int i = addr1.getLength() - 1; i >= 0; i--) {
+			if (addr1.getSegment(i) != addr2.getSegment(i)) {
+				Link l1 = s1.getLinks().get(temp);
+				assert l1 != null;
+				Link l2 = s2.getLinks().get(temp);
+				assert l2 != null;
+				if (!l1.isFailed() && !l2.isFailed()) {
+					Flow flow = new Flow(s1, s2);
+					flow.addLink(l1);
+					flow.addLink(l2);
+					return flow;
+				} else {
+					return null;
+				}
+
+			}
+			temp++;
+		}
+		assert false : "this code should not be executed";
+		return null;
+	}
+	/**
 	 * @param args
-	 * @author Hongze Zhao	
+	 * @author Hongze Zhao
 	 */
 	public static void main(String[] args) {
-		new BCube(2, 4);
+		for (double rat = 0; rat < 1.01; rat += 0.1) {
+			ISimulator sim = new FailureSimulator(0, rat, 0, new BCube(4, 2));
+			sim.initialize();
+			sim.run();
+			try {
+				System.out.println(sim.getMetric("ABT") + " "
+						+ sim.getMetric("SuccCount"));
+			} catch (Exception ex) {
+				System.out.println(ex.getMessage());
+			}
+		}
 
 	}
 

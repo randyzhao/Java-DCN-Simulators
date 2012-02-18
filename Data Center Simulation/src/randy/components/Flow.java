@@ -153,6 +153,21 @@ public class Flow {
 		this.links.addAll(flow.links);
 	}
 
+	/**
+	 * Whether all of its links is valid
+	 * 
+	 * @return
+	 * @author Hongze Zhao
+	 */
+	public boolean isValid() {
+		for (int i = 0; i < this.links.size(); i++) {
+			if (this.links.get(i).isFailed()) {
+				return false;
+			}
+		}
+		return true;
+	}
+
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();

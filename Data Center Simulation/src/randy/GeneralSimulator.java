@@ -151,6 +151,8 @@ public abstract class GeneralSimulator implements ISimulator {
 		this.calculateFlowBandwidth();
 		double abt = this.ABT();
 		this.metrics.add(new ResultMetric("ABT", abt));
+		this.metrics.add(new ResultMetric("SuccCount", this.successfulCount));
+		this.metrics.add(new ResultMetric("FailCount", this.failedCount));
 	}
 
 	protected void preparePairs() {
