@@ -37,7 +37,7 @@ public abstract class GeneralSimulator implements ISimulator {
 	 * 
 	 * @author Hongze Zhao Create At : Feb 18, 2012 4:05:59 PM
 	 */
-	class RoutePair {
+	protected class RoutePair {
 		public RoutePair(UUID home, UUID away) {
 			this.home = home;
 			this.away = away;
@@ -56,20 +56,45 @@ public abstract class GeneralSimulator implements ISimulator {
 	}
 
 	/**
+	 * Used to represent a kind of result metric
+	 * 
+	 * @author Hongze Zhao Create At : Feb 18, 2012 4:49:11 PM
+	 */
+	public class ResultMetric {
+		private final String name;
+		private final double value;
+
+		public ResultMetric(String name, double value) {
+			this.name = name;
+			this.value = value;
+		}
+
+		public String getName() {
+			return this.name;
+		}
+
+		public double getValue() {
+			return this.value;
+		}
+
+	}
+
+	/**
 	 * the dcn to simulate
 	 */
-	private IDCN dcn;
-	private final List<RoutePair> pairs = new LinkedList<RoutePair>();
-	private final List<Flow> flows = new LinkedList<Flow>();
-	private final HashMap<Flow, Double> flowBandwidth = new HashMap<Flow, Double>();
+	protected IDCN dcn;
+	protected final List<RoutePair> pairs = new LinkedList<RoutePair>();
+	protected final List<Flow> flows = new LinkedList<Flow>();
+	protected final HashMap<Flow, Double> flowBandwidth = new HashMap<Flow, Double>();
+	protected final List<ResultMetric> metrics = new LinkedList<ResultMetric>();
 	/**
 	 * the number of successful route pair
 	 */
-	private int successfulCount = 0;
+	protected int successfulCount = 0;
 	/**
 	 * the number of failed route pair
 	 */
-	private int failedCount = 0;
+	protected int failedCount = 0;
 
 	/* (non-Javadoc)
 	 * @see randy.ISimulator#initialize()
@@ -93,7 +118,7 @@ public abstract class GeneralSimulator implements ISimulator {
 	 * 
 	 * @author Hongze Zhao
 	 */
-	private void preRun() {
+	protected void preRun() {
 		this.preparePairs();
 	}
 
@@ -102,7 +127,7 @@ public abstract class GeneralSimulator implements ISimulator {
 	 * 
 	 * @author Hongze Zhao
 	 */
-	private void inRun() {
+	protected void inRun() {
 		Iterator<RoutePair> pairIterator = this.pairs.iterator();
 		while (pairIterator.hasNext()) {
 			RoutePair pair = pairIterator.next();
@@ -122,10 +147,13 @@ public abstract class GeneralSimulator implements ISimulator {
 	 * 
 	 * @author Hongze Zhao
 	 */
-	private void postRun() {
+	protected void postRun() {
 		this.calculateFlowBandwidth();
+		double abt = this.ABT();
+		this.metrics.add(new ResultMetric("ABT", abt));
 	}
-	private void preparePairs() {
+
+	protected void preparePairs() {
 		List<UUID> uuids = this.dcn.getServerUUIDs();
 		for (int i = 0; i < uuids.size(); i++) {
 			for (int j = i + 1; j < uuids.size(); j++) {
@@ -142,7 +170,7 @@ public abstract class GeneralSimulator implements ISimulator {
 	 * @param result
 	 * @author Hongze Zhao
 	 */
-	private void attachFlow(RouteResult result) {
+	protected void attachFlow(RouteResult result) {
 		assert result.isSuccessful();
 		Flow flow = result.getFlow();
 		List<Link> links = result.getFlow().getLinks();
@@ -156,7 +184,7 @@ public abstract class GeneralSimulator implements ISimulator {
 	 * 
 	 * @author Hongze Zhao
 	 */
-	private void calculateFlowBandwidth() {
+	protected void calculateFlowBandwidth() {
 		Iterator<Flow> flowIterator = this.flows.iterator();
 		while (flowIterator.hasNext()) {
 			Flow flow = flowIterator.next();
@@ -182,7 +210,11 @@ public abstract class GeneralSimulator implements ISimulator {
 		sb.append("Failed route number is " + this.failedCount + "\n");
 		sb.append("successful route ratio is " + (double) this.successfulCount
 				/ this.pairs.size() + "\n");
-		sb.append("ABT is " + this.ABT() + "\n");
+		try {
+			sb.append("ABT is " + this.getMetric("ABT") + "\n");
+		} catch (Exception ex) {
+			System.out.println(ex.getMessage());
+		}
 		return sb.toString();
 	}
 
@@ -192,7 +224,7 @@ public abstract class GeneralSimulator implements ISimulator {
 	 * @return
 	 * @author Hongze Zhao
 	 */
-	private double ABT() {
+	protected double ABT() {
 		Double output = Double.MAX_VALUE;
 		Iterator<Double> bws = this.flowBandwidth.values().iterator();
 		while (bws.hasNext()) {
@@ -211,6 +243,19 @@ public abstract class GeneralSimulator implements ISimulator {
 		this.pairs.clear();
 		this.successfulCount = 0;
 		this.failedCount = 0;
+		this.metrics.clear();
+	}
+
+	@Override
+	public double getMetric(String name) throws MetricNotFoundException {
+		Iterator<ResultMetric> mei = this.metrics.iterator();
+		while (mei.hasNext()) {
+			ResultMetric metric = mei.next();
+			if (metric.getName().equals(name)) {
+				return metric.getValue();
+			}
+		}
+		throw new MetricNotFoundException(name);
 	}
 
 }
