@@ -57,8 +57,8 @@ public class FailureSimulator extends GeneralSimulator {
 			sim.initialize();
 			sim.run();
 			try {
-				double abt = sim.getMetric("ABT");
-				System.out.println(abt);
+				Double abt = sim.getMetric("ABT");
+				System.out.println(abt.intValue());
 			} catch (Exception ex) {
 				System.out.println(ex.getMessage());
 			}
