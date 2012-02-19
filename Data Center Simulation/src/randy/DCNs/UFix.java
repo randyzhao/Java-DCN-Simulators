@@ -133,25 +133,20 @@ public class UFix extends BaseDCN {
 	}
 
 
-	class DomainPair {
+	public class DomainPair {
 		private final int domain1;
 		private final int domain2;
 
 		public DomainPair(int domain1, int domain2) {
-			this.domain1 = domain1;
-			this.domain2 = domain2;
+			this.domain1 = Math.min(domain1, domain2);
+			this.domain2 = Math.max(domain1, domain2);
 		}
-
-		public int getDomain1() {
-			return this.domain1;
-		}
-
-		public int getDomain2() {
-			return this.domain2;
-		}
-
 		@Override
 		public int hashCode() {
+
+			System.out.println("hashcode for (" + this.domain1 + " , "
+					+ this.domain2 + ") = "
+					+ (this.domain1 + this.domain2 * 200));
 			return this.domain1 + this.domain2 * 200;
 		}
 
@@ -159,7 +154,7 @@ public class UFix extends BaseDCN {
 	/**
 	 * interlinks of domains
 	 */
-	private final HashMap<DomainPair, List<Link>> interLinks = new HashMap<UFix.DomainPair, List<Link>>();
+	private final HashMap<Integer, List<Link>> interLinks = new HashMap<Integer, List<Link>>();
 	private final int[][] linkCount;
 	/**
 	 * Whethe the function preRouteCalculation has been executed
@@ -201,15 +196,17 @@ public class UFix extends BaseDCN {
 		assert domain1 != domain2;
 		int d1 = Math.min(domain1, domain2);
 		int d2 = Math.max(domain1, domain2);
-		DomainPair pair = new DomainPair(d1, d2);
-		if (!this.interLinks.containsKey(pair)) {
-			this.interLinks.put(pair, new LinkedList<Link>());
+		int code = d1 + d2 * 200;
+		if (!this.interLinks.containsKey(code)) {
+			this.interLinks.put(code, new LinkedList<Link>());
+			assert this.interLinks.containsKey(code);
 		}
-		this.interLinks.get(pair).add(l);
+		this.interLinks.get(code).add(l);
 	}
 
 	/**
-	 * Interconnect two proxy servers
+	 * Interconnect two proxy servers Not to add new link to the node, or the
+	 * intra-domain routing will be violated somehow
 	 * 
 	 * @param source
 	 * @param target
@@ -219,8 +216,7 @@ public class UFix extends BaseDCN {
 			Node tail, double bandwidth) {
 		Link l = new Link(bandwidth, head, tail);
 		this.links.add(l);
-		head.addLink(l);
-		tail.addLink(l);
+		System.out.println("add links for " + domain1 + " : " + domain2);
 		this.addInterLink(domain1, domain2, l);
 	}
 
@@ -288,9 +284,15 @@ public class UFix extends BaseDCN {
 	 * @author Hongze Zhao
 	 */
 	private Link getInterLink(int domain1, int domain2) {
+		assert domain1 >= 0 && domain2 >= 0;
 		int d1 = Math.min(domain1, domain2);
 		int d2 = Math.max(domain2, domain1);
 		List<Link> list = this.interLinks.get(new DomainPair(d1, d2));
+		if (list == null) {
+			int a = 1;
+		}
+		assert list != null : "domain pair " + d1 + " : " + d2
+				+ " is not found";
 		if (list.isEmpty()) {
 			return null;
 		} else {
@@ -352,6 +354,7 @@ public class UFix extends BaseDCN {
 			return sourceDCN.route(sourceUUID,
 					targetUUID);
 		} else {
+			assert sourceDomainID >= 0 && targetDomainID >= 0;
 			Flow interFlow = this.getInterFlow(sourceDomainID, targetDomainID);
 			if (interFlow == null) {// no interFlow
 				return new RouteResult(source, target);
