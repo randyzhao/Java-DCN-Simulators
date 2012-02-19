@@ -15,11 +15,18 @@
 package randy.DCNs;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.UUID;
 
 import randy.BaseDCN;
+import randy.DCNs.ufix.GeneralLinkCounter;
+import randy.DCNs.ufix.ILinkConnector;
+import randy.DCNs.ufix.ILinkCounter;
+import randy.DCNs.ufix.IProxySelector;
+import randy.DCNs.ufix.InterleavingConnector;
+import randy.DCNs.ufix.SeperateProxySelector;
 import randy.components.Node;
 
 /**
@@ -39,20 +46,34 @@ public class UFix extends BaseDCN {
 		private final BaseDCN dcn;
 		private final double connectDegree;
 		private final int u;
-		
 		/**
 		 * Available proxy server in the domain Note when the dcn is an
 		 * instanceof UFix, excludes the proxy server in dcn from the proxy
 		 * server in this domain.
 		 */
 		private HashSet<Node> availableProxyServer;
-		public UFixDomain(BaseDCN dcn, double connectDegree) {
+		/**
+		 * proxy server which is planned to use in the connection of this level
+		 */
+		private final List<Node> planToUseProxyServer = new ArrayList<Node>(
+				this.u);
+
+		public UFixDomain(BaseDCN dcn, double connectDegree,
+				IProxySelector selector) {
 			this.dcn = dcn;
 			this.connectDegree = connectDegree;
 			this.processAvailableProxyServer();
 			this.u = (int) (this.connectDegree * this.getX());
+			selector.select(this);
 		}
 
+		public List<Node> getServers() {
+			return this.dcn.getServers();
+		}
+
+		public BaseDCN getDCN() {
+			return this.dcn;
+		}
 		/**
 		 * Calculate all the available proxy server Exclude the proxy server in
 		 * dcn when dcn is an instance of Ufix As a server can only be a proxy
@@ -72,6 +93,13 @@ public class UFix extends BaseDCN {
 			}
 		}
 
+		public HashSet<Node> getAvailableProxyServers() {
+			return this.availableProxyServer;
+		}
+
+		public Node getPlannedToUseProxyServer(int i) {
+			return this.planToUseProxyServer.get(i);
+		}
 		/**
 		 * get x value in paper: number of available uFix proxy server in the
 		 * domain Assume all the server can be used as uFix proxy server
@@ -83,6 +111,11 @@ public class UFix extends BaseDCN {
 			return this.availableProxyServer.size();
 		}
 
+		public void addPlanToUseProxyServer(Node server) {
+			assert this.availableProxyServer.contains(server);
+			this.planToUseProxyServer.add(server);
+			assert this.planToUseProxyServer.size() <= this.u;
+		}
 		/**
 		 * get u value in paper: number of available uFix proxy servers planned
 		 * to used in this level
@@ -93,29 +126,34 @@ public class UFix extends BaseDCN {
 			return this.u;
 		}
 	}
-	
+
+	private final int[][] linkCount;
 	List<UFixDomain> domains = new ArrayList<UFix.UFixDomain>(10);
 	public UFix(double connectDegree, BaseDCN... dcnList){
 		for (BaseDCN dcn : dcnList){
-			this.domains.add(new UFixDomain(dcn, connectDegree));
+			this.domains.add(new UFixDomain(dcn, connectDegree,
+					new SeperateProxySelector()));
 		}
-		// initial linkCount
 		this.linkCount = new int[dcnList.length][];
 		for (int i = 0; i < dcnList.length; i++) {
 			this.linkCount[i] = new int[dcnList.length];
-			for (int j = 0; j < dcnList.length; j++) {
-				this.linkCount[i][j] = 0;
-			}
 		}
-		//TODO:
+		Arrays.fill(this.linkCount, 0);
+		ILinkCounter counter = new GeneralLinkCounter();
+		counter.count(this);
+		ILinkConnector connector = new InterleavingConnector();
+		connector.connect(this);
 	}
 	
 	/**
 	 * count of links between any pair of UFix domains
 	 * the e_{ij} valud in paper
 	 */
-	private final int[][] linkCount;
 
+
+	public int[][] getLinkCount() {
+		return this.linkCount;
+	}
 	/**
 	 * Add link count between domain1 and domain2
 	 * 
@@ -148,12 +186,16 @@ public class UFix extends BaseDCN {
 		return null;
 	}
 
+	@Override
+	public void connectNode(Node n1, Node n2, double bandwidth) {
+		super.connectNode(n1, n2, bandwidth);
+	}
 	/**
 	 * @param args
 	 * @author Hongze Zhao
 	 */
 	public static void main(String[] args) {
-		// TODO Auto-generated method stub
+		new UFix(0.5, new BCube(4, 1), new BCube(4, 1));
 
 	}
 }

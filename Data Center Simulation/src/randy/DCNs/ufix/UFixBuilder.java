@@ -20,5 +20,5 @@ package randy.DCNs.ufix;
  * @author Hongze Zhao Create At : Feb 19, 2012 2:35:59 PM
  */
 public class UFixBuilder {
-	private LinkCounter counter;
+	private ILinkCounter counter;
 }

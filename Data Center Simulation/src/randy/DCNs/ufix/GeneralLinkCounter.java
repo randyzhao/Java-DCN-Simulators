@@ -27,18 +27,15 @@ import randy.DCNs.UFix.UFixDomain;
  * 
  * @author Hongze Zhao Create At : Feb 19, 2012 2:42:32 PM
  */
-public class GeneralLinkCounter extends LinkCounter {
+public class GeneralLinkCounter implements ILinkCounter {
 
-	public GeneralLinkCounter(UFix ufix) {
-		super(ufix);
-
-	}
-
+	private UFix ufix;
 	/* (non-Javadoc)
 	 * @see randy.DCNs.ufix.LinkCounter#count()
 	 */
 	@Override
-	public void count() {
+	public void count(UFix ufix) {
+		this.ufix = ufix;
 		List<UFixDomain> domains = this.ufix.getDomains();
 		int m = domains.size();
 		int meshN = Integer.MAX_VALUE;
