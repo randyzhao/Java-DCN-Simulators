@@ -196,12 +196,24 @@ public class UFix extends BaseDCN {
 		assert domain1 != domain2;
 		int d1 = Math.min(domain1, domain2);
 		int d2 = Math.max(domain1, domain2);
-		int code = d1 + d2 * 200;
+		int code = this.domainPairCode(d1, d2);
 		if (!this.interLinks.containsKey(code)) {
 			this.interLinks.put(code, new LinkedList<Link>());
 			assert this.interLinks.containsKey(code);
 		}
 		this.interLinks.get(code).add(l);
+	}
+
+	/**
+	 * the hash code for domain pair used in this.interLinks
+	 * 
+	 * @param d1
+	 * @param d2
+	 * @return
+	 * @author Hongze Zhao
+	 */
+	private int domainPairCode(int d1, int d2) {
+		return d1 + d2 * 200;
 	}
 
 	/**
@@ -216,7 +228,6 @@ public class UFix extends BaseDCN {
 			Node tail, double bandwidth) {
 		Link l = new Link(bandwidth, head, tail);
 		this.links.add(l);
-		System.out.println("add links for " + domain1 + " : " + domain2);
 		this.addInterLink(domain1, domain2, l);
 	}
 
@@ -287,7 +298,8 @@ public class UFix extends BaseDCN {
 		assert domain1 >= 0 && domain2 >= 0;
 		int d1 = Math.min(domain1, domain2);
 		int d2 = Math.max(domain2, domain1);
-		List<Link> list = this.interLinks.get(new DomainPair(d1, d2));
+		int code = this.domainPairCode(d1, d2);
+		List<Link> list = this.interLinks.get(code);
 		if (list == null) {
 			int a = 1;
 		}
@@ -359,16 +371,29 @@ public class UFix extends BaseDCN {
 			if (interFlow == null) {// no interFlow
 				return new RouteResult(source, target);
 			} else {
-				RouteResult result1 = sourceDCN.route(sourceUUID, interFlow
-						.getSource().getUuid());
-				RouteResult result2 = targetDCN.route(interFlow.getTarget()
-						.getUuid(), targetUUID);
-				if (!result1.isSuccessful() || !result2.isSuccessful()) {
-					return new RouteResult(source, target);
+				Flow output;
+				if (!sourceUUID.equals(interFlow.getSource().getUuid())) {
+					RouteResult result1 = sourceDCN.route(sourceUUID, interFlow
+							.getSource().getUuid());
+					if (!result1.isSuccessful()) {
+						return new RouteResult(source, target);
+					}
+					output = result1.getFlow();
+				} else {
+					output = new Flow(interFlow.getSource(),
+							interFlow.getSource());
 				}
-				Flow output = result1.getFlow();
+
 				output.connect(interFlow);
-				output.connect(result2.getFlow());
+
+				if (!interFlow.getTarget().getUuid().equals(targetUUID)) {
+					RouteResult result2 = targetDCN.route(interFlow.getTarget()
+							.getUuid(), targetUUID);
+					if (!result2.isSuccessful()) {
+						return new RouteResult(source, target);
+					}
+					output.connect(result2.getFlow());
+				}
 				return new RouteResult(output, source, target);
 			}
 		}

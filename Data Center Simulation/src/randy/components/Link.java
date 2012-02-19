@@ -142,11 +142,19 @@ public class Link {
 		StringBuilder sb = new StringBuilder();
 		sb.append(this.head.getName());
 		sb.append(" : ");
-		sb.append(this.head.getAddr().toString());
+		if (this.head.getAddr() != null) {
+			sb.append(this.head.getAddr().toString());
+		} else {
+			sb.append("undefined");
+		}
 		sb.append(" --- ");
 		sb.append(this.tail.getName());
 		sb.append(" : ");
-		sb.append(this.tail.getAddr().toString());
+		if (this.tail.getAddr() != null) {
+			sb.append(this.tail.getAddr().toString());
+		} else {
+			sb.append("undefined");
+		}
 		return sb.toString();
 	}
 

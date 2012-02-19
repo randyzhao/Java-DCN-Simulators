@@ -369,6 +369,7 @@ public class FatTree extends BaseDCN {
 		if (!this.preRoute) {
 			this.preRouteCalculation();
 		}
+
 		Node source = this.getServer(sourceUUID);
 		Node target = this.getServer(targetUUID);
 
@@ -394,6 +395,9 @@ public class FatTree extends BaseDCN {
 		case 0:
 			return this.diffPodRoute(source, target);
 		}
+		assert false : "this code should not be executed\nsource addr is "
+				+ source.getAddr().toString() + " target addr is "
+				+ target.getAddr().toString();
 		return null;
 	}
 

@@ -62,9 +62,9 @@ public class UFixTest {
 				RouteResult result = this.ufix
 						.route(uuids.get(i), uuids.get(j));
 				Assert.assertTrue(result.isSuccessful());
-				Assert.assertTrue(result.getFlow().getLinks().size() >= 2);
 				Assert.assertTrue("fail for " + result.getFlow().toString(),
 						result.getFlow().isSorted());
+				Assert.assertTrue(result.getFlow().isValid());
 			}
 		}
 	}
