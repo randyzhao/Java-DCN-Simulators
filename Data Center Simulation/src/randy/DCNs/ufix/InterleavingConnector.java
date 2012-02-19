@@ -63,9 +63,9 @@ public class InterleavingConnector implements ILinkConnector {
 					if (e[i][j] <= 0) {
 						continue;
 					}
-					ufix.connectNode(
-							domains.get(i).getPlannedToUseProxyServer(i),
-							domains.get(j).getPlannedToUseProxyServer(j),
+					ufix.interConnectProxy(i, j, domains.get(i)
+							.getPlannedToUseProxyServer(i), domains.get(j)
+							.getPlannedToUseProxyServer(j),
 							ConstantManager.LINK_BANDWIDTH);
 					f[i]++;
 					f[j]++;

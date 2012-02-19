@@ -110,7 +110,9 @@ public abstract class BaseDCN implements IDCN {
 		return this.serverUUIDHashMap.get(uuid);
 	}
 
-
+	public List<Link> getLinks() {
+		return this.links;
+	}
 	/**
 	 * Connect two nodes with one link with specified bandwidth
 	 * 
