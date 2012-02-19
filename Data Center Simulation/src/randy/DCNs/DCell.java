@@ -21,6 +21,8 @@ import java.util.UUID;
 
 import randy.BaseDCN;
 import randy.ConstantManager;
+import randy.FailureSimulator;
+import randy.ISimulator;
 import randy.components.Flow;
 import randy.components.IPAddr;
 import randy.components.Link;
@@ -104,6 +106,13 @@ public class DCell extends BaseDCN {
 		}
 	}
 
+	public List<Node> getServers() {
+		return this.servers;
+	}
+
+	public List<Node> getSwitches() {
+		return this.switches;
+	}
 	/**
 	 * Calculate uid from pref
 	 * 
@@ -121,6 +130,7 @@ public class DCell extends BaseDCN {
 		}
 		return uid;
 	}
+
 
 	/**
 	 * Calculate pref from uid
@@ -267,31 +277,27 @@ public class DCell extends BaseDCN {
 		Node source = this.getServer(sourceUUID);
 		Node target = this.getServer(targetUUID);
 		assert source != null && target != null;
-		return new RouteResult(this.DCellRouting(source, target), source,
-				target);
+		Flow flow = this.DCellRouting(source, target);
+		if (!flow.isValid()) {
+			return new RouteResult(source, target);
+		} else {
+			return new RouteResult(flow, source, target);
+		}
 		// TODO;
 	}
 
 	public static void main(String[] args) {
-		// System.out.println("try construction");
-		// // new DCell(4, 0);
-		// new DCell(4, 1);
-		new DCell(4, 3);
-		// System.out.println("construction is OK");
-		// int n = 8, l = 4;
-		// for (int i = 0; i <= l; i++) {
-		// System.out.println("t" + i + " is " + getTk(i, n));
-		// System.out.println("g" + i + " is " + getGk(i, n));
-		// }
-		// int uid = 5000;
-		// System.out.println(DCell.prefFromUid(uid, 2, 8).toString());
-		// System.out
-		// .println(DCell.uidFromPref(DCell.prefFromUid(uid, 2, 8), 2, 8));
-		// System.out.println(DCell.getTk(2, 8));
-		// for (int i = 0; i < 1000; i++) {
-		// System.out.println(DCell.prefFromUid(i, 2, 8).toString());
-		// }
-		assert false : "The test is over";
+		for (double rat = 0; rat < 0.41; rat += 0.05) {
+			ISimulator sim = new FailureSimulator(0, 0, rat, new DCell(8, 1));
+			sim.initialize();
+			sim.run();
+			try {
+				System.out.println(sim.getMetric("ABT") + " "
+						+ sim.getMetric("SuccCount"));
+			} catch (Exception ex) {
+				System.out.println(ex.getMessage());
+			}
+		}
 	}
 
 }

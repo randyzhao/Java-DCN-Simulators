@@ -22,6 +22,9 @@ public class DCellTest {
 
 	@Test
 	public void testDCell() {
+		DCell d = new DCell(4, 1);
+		Assert.assertTrue(d.getServerUUIDs().size() == 20);
+		Assert.assertTrue(d.getSwitches().size() == 5);
 		for (int i = 2; i <= 4; i++) {
 			for (int j = 0; j <= 2; j++) {
 				try {

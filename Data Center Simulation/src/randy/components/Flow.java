@@ -66,11 +66,6 @@ public class Flow {
 	 * @author Hongze Zhao
 	 */
 	public boolean isSorted(){
-		if (this.source.getAddr().toString().equals("0.0")
-				&& this.target.getAddr().toString().equals("1.0")) {
-			int a = 0;
-			a++;
-		}
 		Link headLink = this.links.get(0);
 		Link tailLink = this.links.get(this.links.size() - 1);
 		if (!headLink.contain(this.source)) {

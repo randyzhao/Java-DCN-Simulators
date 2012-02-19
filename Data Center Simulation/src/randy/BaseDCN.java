@@ -181,6 +181,13 @@ public abstract class BaseDCN implements IDCN {
 		}
 	}
 
+	public List<Node> getServers() {
+		return this.servers;
+	}
+
+	public List<Node> getSwitches() {
+		return this.switches;
+	}
 	@Override
 	public void randomFailLinks(double ration) {
 		for (Link l : this.links) {
