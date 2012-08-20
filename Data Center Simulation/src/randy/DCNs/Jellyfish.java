@@ -46,7 +46,7 @@ public class Jellyfish extends BaseDCN {
 		private Random ran = new Random();
 		private class RouteTableEntry {
 			private int destTORId;
-			private List<JellyfishSwitch> nextHops;
+			private List<JellyfishSwitch> nextHops = new ArrayList<Jellyfish.JellyfishSwitch>();
 			private int hopsCount;
 			public int getDestTORId() {
 				return this.destTORId;
@@ -222,6 +222,8 @@ public class Jellyfish extends BaseDCN {
 			// ran1 != ran2
 			JellyfishSwitch sw1 = availableTORs.get(ran1);
 			JellyfishSwitch sw2 = availableTORs.get(ran2);
+			System.out.println("Connect switch " + sw1.getName() + " -- "
+					+ sw2.getName());
 			this.connectSwitches(sw1, sw2, ConstantManager.LINK_BANDWIDTH);
 			if (sw1.getAvailablePort() == 0) {
 				availableTORs.remove(sw1);
@@ -245,6 +247,10 @@ public class Jellyfish extends BaseDCN {
 		for (JellyfishSwitch neibor : sw.getNeiborSwitches()) {
 			if (neibor.updateRouteTable(destTORId, sw,
 					sw.hopsToDestTOR(destTORId))) {
+				System.out.println(String.format(
+						"update switch %1s to dest %2d hops %3d",
+						neibor.getName(), destTORId,
+						sw.hopsToDestTOR(destTORId)));
 				updateQueue.add(neibor);
 			}
 		}
@@ -257,6 +263,7 @@ public class Jellyfish extends BaseDCN {
 	 * @author Hongze Zhao
 	 */
 	private void buildRouteEntryForSwitch(JellyfishSwitch sw) {
+		sw.updateRouteTable(sw.getTORId(), null, 0);
 		Queue<JellyfishSwitch> updateQueue = new LinkedBlockingDeque<Jellyfish.JellyfishSwitch>();
 		updateQueue.add(sw);
 		while (!updateQueue.isEmpty()){
@@ -313,6 +320,8 @@ public class Jellyfish extends BaseDCN {
 	 */
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
+		Jellyfish jf = new Jellyfish(24, 10, 5);
+		System.out.println("Test ok");
 
 	}
 }
