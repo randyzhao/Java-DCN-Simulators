@@ -106,10 +106,12 @@ public class DCell extends BaseDCN {
 		}
 	}
 
+	@Override
 	public List<Node> getServers() {
 		return this.servers;
 	}
 
+	@Override
 	public List<Node> getSwitches() {
 		return this.switches;
 	}
@@ -273,10 +275,14 @@ public class DCell extends BaseDCN {
 	 */
 	@Override
 	public RouteResult route(UUID sourceUUID, UUID targetUUID) {
+		// System.out.println("into dcell route");
 		// TODO Auto-generated method stub
 		Node source = this.getServer(sourceUUID);
 		Node target = this.getServer(targetUUID);
 		assert source != null && target != null;
+		if (sourceUUID.equals(targetUUID)) {
+			return new RouteResult(new Flow(source, target), source, target);
+		}
 		Flow flow = this.DCellRouting(source, target);
 		if (!flow.isValid()) {
 			return new RouteResult(source, target);

@@ -158,6 +158,12 @@ public class BCube extends BaseDCN {
 	 */
 	@Override
 	public RouteResult route(UUID sourceUUID, UUID targetUUID) {
+		Node source = this.getServer(sourceUUID);
+		Node target = this.getServer(targetUUID);
+		if (sourceUUID.equals(targetUUID)) {
+			return new RouteResult(new Flow(source, target), source, target);
+		}
+		// System.out.println("into bcube route");
 		List<Flow> flows = this.buildFlowSet(this.getServer(sourceUUID),
 				this.getServer(targetUUID));
 		if (flows.isEmpty()) {

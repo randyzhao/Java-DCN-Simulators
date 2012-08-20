@@ -128,8 +128,15 @@ public abstract class GeneralSimulator implements ISimulator {
 	 * @author Hongze Zhao
 	 */
 	protected void inRun() {
+		System.out.println("begin");
 		Iterator<RoutePair> pairIterator = this.pairs.iterator();
+		int count = 0;
 		while (pairIterator.hasNext()) {
+			count++;
+			if (count >= this.pairs.size() / 100) {
+				System.out.print(".");
+				count = 0;
+			}
 			RoutePair pair = pairIterator.next();
 			RouteResult result = this.dcn.route(pair.getHome(), pair.getAway());
 			if (result.isSuccessful()) {
@@ -142,6 +149,7 @@ public abstract class GeneralSimulator implements ISimulator {
 				this.failedCount++;
 			}
 		}
+		System.out.println("finish");
 	}
 
 	/**
@@ -150,9 +158,12 @@ public abstract class GeneralSimulator implements ISimulator {
 	 * @author Hongze Zhao
 	 */
 	protected void postRun() {
-		this.calculateFlowBandwidth();
+		this.calculateFlowBandwidthHops();
 		double abt = this.ABT();
 		this.metrics.add(new ResultMetric("ABT", abt));
+		this.metrics.add(new ResultMetric("Hops", this.Hops()));
+		this.metrics.add(new ResultMetric("AveHops", this.Hops()
+				/ this.flows.size()));
 		this.metrics.add(new ResultMetric("SuccCount", this.successfulCount));
 		this.metrics.add(new ResultMetric("FailCount", this.failedCount));
 	}
@@ -188,7 +199,7 @@ public abstract class GeneralSimulator implements ISimulator {
 	 * 
 	 * @author Hongze Zhao
 	 */
-	protected void calculateFlowBandwidth() {
+	protected void calculateFlowBandwidthHops() {
 		Iterator<Flow> flowIterator = this.flows.iterator();
 		while (flowIterator.hasNext()) {
 			Flow flow = flowIterator.next();
@@ -240,6 +251,20 @@ public abstract class GeneralSimulator implements ISimulator {
 		return output * this.successfulCount;
 	}
 
+	/**
+	 * Calculate total hops count of all the flows
+	 * 
+	 * @return
+	 * @author Hongze Zhao
+	 */
+	protected double Hops() {
+		int hops = 0;
+		Iterator<Flow> f = this.flows.iterator();
+		while (f.hasNext()) {
+			hops += f.next().getLinks().size();
+		}
+		return hops;
+	}
 	@Override
 	public void reset() {
 		// TODO Auto-generated method stub

@@ -21,6 +21,8 @@ import java.util.UUID;
 
 import randy.BaseDCN;
 import randy.ConstantManager;
+import randy.FailureSimulator;
+import randy.ISimulator;
 import randy.components.Flow;
 import randy.components.IPAddr;
 import randy.components.Link;
@@ -57,6 +59,15 @@ public class FatTree extends BaseDCN {
 	private final HashMap<IPAddr, Node> coreSwitches = new HashMap<IPAddr, Node>();
 	private final HashMap<IPAddr, Node> aggeSwitches = new HashMap<IPAddr, Node>();
 	private final HashMap<IPAddr, Node> edgeSwitches = new HashMap<IPAddr, Node>();
+
+	@Override
+	public void reset() {
+		// TODO Auto-generated method stub
+		super.reset();
+		this.preRoute = false;
+		this.flowsBetweenAggeSwitches.clear();
+		this.flowsBetweenEdgeSwitchesDiffPod.clear();
+	}
 
 	public FatTree(int k) {
 		this.k = k;
@@ -270,6 +281,7 @@ public class FatTree extends BaseDCN {
 	 * @author Hongze Zhao
 	 */
 	public void preRouteCalculation() {
+		// System.out.println("fattree: pre routing");
 		// valid flows between agge switches under different pods
 		for (int pod1 = 0; pod1 < this.k; pod1++) {
 			for (int pod2 = 0; pod2 < this.k; pod2++) {
@@ -345,6 +357,7 @@ public class FatTree extends BaseDCN {
 										Flow temp = new Flow(f1);
 										temp.connect(flow);
 										temp.connect(f2);
+										assert temp.isValid();
 										tempFlows.add(temp);
 									}
 								}
@@ -366,12 +379,15 @@ public class FatTree extends BaseDCN {
 	 */
 	@Override
 	public RouteResult route(UUID sourceUUID, UUID targetUUID) {
+		// System.out.println("into fattree route");
 		if (!this.preRoute) {
 			this.preRouteCalculation();
 		}
-
 		Node source = this.getServer(sourceUUID);
 		Node target = this.getServer(targetUUID);
+		if (sourceUUID.equals(targetUUID)) {
+			return new RouteResult(new Flow(source, target), source, target);
+		}
 
 		assert source.getLinks().size() == 1;
 		assert target.getLinks().size() == 1;
@@ -388,11 +404,14 @@ public class FatTree extends BaseDCN {
 		switch (commAddr.getLength()) {
 		case 2:
 			// under same edge switch
+			// System.out.println(1);
 			return this.sameEdgeRoute(source, target);
 		case 1:
 			// under same pod
+			// System.out.println(2);
 			return this.samePodRoute(source, target);
 		case 0:
+			// System.out.println(3);
 			return this.diffPodRoute(source, target);
 		}
 		assert false : "this code should not be executed\nsource addr is "
@@ -462,12 +481,16 @@ public class FatTree extends BaseDCN {
 			return new RouteResult(source, target);
 		}
 		Flow mediaFlow = flows.get(ConstantManager.ran.nextInt(flows.size()));
+		assert mediaFlow.isValid() : mediaFlow.toString();
 		Flow f1 = new Flow(source, edge1);
+		assert f1.isValid();
 		Flow f2 = new Flow(edge2, target);
+		assert f2.isValid();
 		f1.addLink(source.getLinks().get(0));
 		f2.addLink(target.getLinks().get(0));
 		f1.connect(mediaFlow);
 		f1.connect(f2);
+		assert f1.isValid();
 		return new RouteResult(f1, source, target);
 	}
 
@@ -521,9 +544,17 @@ public class FatTree extends BaseDCN {
 	 * @author Hongze Zhao
 	 */
 	public static void main(String[] args) {
-		// TODO Auto-generated method stub
-		FatTree f = new FatTree(8);
-		assert false : "the end\n";
+		for (double rat = 0; rat < 1.01; rat += 0.1) {
+			ISimulator sim = new FailureSimulator(rat, 0, 0, new FatTree(10));
+			sim.initialize();
+			sim.run();
+			try {
+				System.out.println(sim.getMetric("ABT") + " "
+						+ sim.getMetric("SuccCount"));
+			} catch (Exception ex) {
+				System.out.println(ex.getMessage());
+			}
+		}
 	}
 
 }

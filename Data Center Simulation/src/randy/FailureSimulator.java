@@ -40,6 +40,7 @@ public class FailureSimulator extends GeneralSimulator {
 	 */
 	@Override
 	public void initialize() {
+		this.dcn.reset();
 		this.dcn.randomFailLinks(this.linkFailRatio);
 		this.dcn.randomFailServers(this.serverFailRatio);
 		this.dcn.randomFailSwitches(this.switchFailRatio);

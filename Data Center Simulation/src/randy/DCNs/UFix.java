@@ -24,6 +24,8 @@ import java.util.UUID;
 
 import randy.BaseDCN;
 import randy.ConstantManager;
+import randy.FailureSimulator;
+import randy.ISimulator;
 import randy.DCNs.ufix.GeneralLinkCounter;
 import randy.DCNs.ufix.HopsFirstProxySelector;
 import randy.DCNs.ufix.ILinkConnector;
@@ -41,6 +43,7 @@ import randy.components.Node;
  */
 public class UFix extends BaseDCN {
 
+	private int intraFails = 0, interFails = 0;
 	/**
 	 * Used to abstract a domain of UFix
 	 * 
@@ -156,6 +159,7 @@ public class UFix extends BaseDCN {
 	 */
 	private final HashMap<Integer, List<Link>> interLinks = new HashMap<Integer, List<Link>>();
 	private final int[][] linkCount;
+	private final List<Node> proxyServers = new LinkedList<Node>();
 	/**
 	 * Whethe the function preRouteCalculation has been executed
 	 */
@@ -229,6 +233,8 @@ public class UFix extends BaseDCN {
 		Link l = new Link(bandwidth, head, tail);
 		this.links.add(l);
 		this.addInterLink(domain1, domain2, l);
+		this.proxyServers.add(head);
+		this.proxyServers.add(tail);
 	}
 
 	/**
@@ -257,8 +263,7 @@ public class UFix extends BaseDCN {
 	}
 
 	public List<Node> proxyServer() {
-		// TODO:
-		return null;
+		return this.proxyServers;
 	}
 	
 	public List<UFixDomain> getDomains() {
@@ -274,12 +279,16 @@ public class UFix extends BaseDCN {
 		if (this.preRoute) {
 			return;
 		}
-		// remove failed interlink
+		// remove failed link
 		for (List<Link> list : this.interLinks.values()) {
+			List<Link> removeList = new LinkedList<Link>();
 			for (Link l : list) {
 				if (l.isFailed()) {
-					list.remove(l);
+					removeList.add(l);
 				}
+			}
+			for (Link l : removeList) {
+				list.remove(l);
 			}
 		}
 
@@ -310,6 +319,17 @@ public class UFix extends BaseDCN {
 		} else {
 			return list.get(ConstantManager.ran.nextInt(list.size()));
 		}
+	}
+
+	private List<Link> getInterLinks(int domain1, int domain2) {
+		assert domain1 >= 0 && domain2 >= 0;
+		int d1 = Math.min(domain1, domain2);
+		int d2 = Math.max(domain2, domain1);
+		int code = this.domainPairCode(d1, d2);
+		List<Link> list = this.interLinks.get(code);
+		assert list != null : "domain pair " + d1 + " : " + d2
+				+ " is not found";
+		return list;
 	}
 
 	/**
@@ -343,6 +363,122 @@ public class UFix extends BaseDCN {
 		}
 	}
 
+	/**
+	 * Get vaild interFlows make sure that the flow's source is in domain1 and
+	 * flow's target is in domain2
+	 * 
+	 * @param domain1
+	 * @param domain2
+	 * @return
+	 * @author Hongze Zhao
+	 */
+	private List<Flow> getInterFlows(int domain1, int domain2) {
+		List<Link> links = this.getInterLinks(domain1, domain2);
+		List<Flow> output = new LinkedList<Flow>();
+		Node source = null, target = null;
+
+		for (Link l : links) {
+			if (l == null) {
+				return null;
+			} else {
+				if (this.domains.get(domain1).dcn.containNode(l.getHead()
+						.getUuid())) {// links' head is in
+										// domain1
+					source = l.getHead();
+					target = l.getTail();
+
+				} else {
+					source = l.getTail();
+					target = l.getHead();
+				}
+			}
+			Flow flow = new Flow(source, target);
+			flow.addLink(l);
+			output.add(flow);
+		}
+		return output;
+	}
+
+	/**
+	 * Used to display the result of inter-link selection result
+	 * 
+	 * @author Hongze Zhao Create At : Feb 19, 2012 11:39:21 PM
+	 */
+	private class InterRoutePair {
+		private final Link interLink;
+		private final Flow headFlow, tailFlow;
+
+		public InterRoutePair(Link interLink, Flow headFlow, Flow tailFlow) {
+			this.interLink = interLink;
+			this.headFlow = headFlow;
+			this.tailFlow = tailFlow;
+		}
+
+		public Link getInterLink() {
+			return this.interLink;
+		}
+
+		public Flow getHeadFlow() {
+			return this.headFlow;
+		}
+
+		public Flow getTailFlow() {
+			return this.tailFlow;
+		}
+
+	}
+
+	/**
+	 * select proper inter-link and result the generated flow before and after
+	 * the inter-link and return the flow
+	 * 
+	 * @param source
+	 * @param target
+	 * @param sourceDomain
+	 * @param targetDomain
+	 * @return
+	 * @author Hongze Zhao
+	 */
+	private Flow getValidFlow(Node source, Node target, int sourceDomain,
+			int targetDomain) {
+		List<Flow> output = new LinkedList<Flow>();
+		List<Flow> flows = this.getInterFlows(sourceDomain, targetDomain);
+		if (flows.isEmpty()) {
+			this.interFails++;
+			System.out.println("inter : " + this.interFails + " intra : "
+					+ this.intraFails);
+			return null;
+		}
+		for (Flow f : flows) {
+			RouteResult result1 = this.domains.get(sourceDomain).dcn.route(
+					source.getUuid(), f.getSource()
+					.getUuid());
+			if (!result1.isSuccessful()) {
+				this.intraFails++;
+				System.out.println("inter : " + this.interFails + " intra : "
+						+ this.intraFails);
+				continue;
+			}
+			RouteResult result2 = this.domains.get(targetDomain).dcn.route(f
+					.getTarget().getUuid(),
+					target.getUuid());
+			if (!result2.isSuccessful()) {
+				this.intraFails++;
+				System.out.println("inter : " + this.interFails + " intra : "
+						+ this.intraFails);
+				continue;
+			}
+			Flow flow = result1.getFlow();
+			flow.connect(f);
+			flow.connect(result2.getFlow());
+			output.add(flow);
+		}
+		if (output.isEmpty()) {
+			return null;
+		} else {
+			return output.get(ConstantManager.ran.nextInt(output.size()));
+		}
+	}
 	@Override
 	public RouteResult route(UUID sourceUUID, UUID targetUUID) {
 		this.preRouteCalculation();
@@ -363,39 +499,19 @@ public class UFix extends BaseDCN {
 		BaseDCN sourceDCN = this.domains.get(sourceDomainID).getDCN();
 		BaseDCN targetDCN = this.domains.get(targetDomainID).getDCN();
 		if (sourceDomainID == targetDomainID) {
+			// System.out.println(1);
 			return sourceDCN.route(sourceUUID,
 					targetUUID);
 		} else {
-			assert sourceDomainID >= 0 && targetDomainID >= 0;
-			Flow interFlow = this.getInterFlow(sourceDomainID, targetDomainID);
-			if (interFlow == null) {// no interFlow
+			Flow flow = this.getValidFlow(source, target, sourceDomainID,
+					targetDomainID);
+			if (flow == null) {
 				return new RouteResult(source, target);
-			} else {
-				Flow output;
-				if (!sourceUUID.equals(interFlow.getSource().getUuid())) {
-					RouteResult result1 = sourceDCN.route(sourceUUID, interFlow
-							.getSource().getUuid());
-					if (!result1.isSuccessful()) {
-						return new RouteResult(source, target);
-					}
-					output = result1.getFlow();
-				} else {
-					output = new Flow(interFlow.getSource(),
-							interFlow.getSource());
-				}
-
-				output.connect(interFlow);
-
-				if (!interFlow.getTarget().getUuid().equals(targetUUID)) {
-					RouteResult result2 = targetDCN.route(interFlow.getTarget()
-							.getUuid(), targetUUID);
-					if (!result2.isSuccessful()) {
-						return new RouteResult(source, target);
-					}
-					output.connect(result2.getFlow());
-				}
-				return new RouteResult(output, source, target);
 			}
+			assert flow.isValid();
+			assert flow.getSource().equals(source)
+					&& flow.getTarget().equals(target);
+			return new RouteResult(flow, source, target);
 		}
 	}
 	/**
@@ -403,7 +519,35 @@ public class UFix extends BaseDCN {
 	 * @author Hongze Zhao
 	 */
 	public static void main(String[] args) {
-		new UFix(0.5, new BCube(4, 1), new BCube(4, 1));
+		for (Double rat = 0.0; rat < 0.41; rat += 0.05) {
+			ISimulator sim = new FailureSimulator(rat, 0, 0,
+ new UFix(0.5,
+					new UFix(0.5, new BCube(4, 1), new FatTree(4), new DCell(4,
+							1)), new UFix(0.5, new BCube(4, 1), new FatTree(4),
+							new DCell(4, 1)), new UFix(0.5, new BCube(4, 1),
+							new FatTree(4), new DCell(4, 1))));
+			sim.initialize();
+			sim.run();
+			try {
+				System.out.println("failure ratio "
+						+ ((Double) (rat * 100)).intValue() + "% : "
+						+ sim.getMetric("ABT") + " "
+						+ (int) sim.getMetric("SuccCount") + " "
+						+ sim.getMetric("AveHops"));
+			} catch (Exception ex) {
+				System.out.println(ex.getMessage());
+			}
+		}
 		assert false : "the end";
 	}
+
+	@Override
+	public void reset() {
+		// TODO Auto-generated method stub
+		super.reset();
+		for (UFixDomain domain : this.domains) {
+			domain.dcn.reset();
+		}
+	}
+
 }
