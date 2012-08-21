@@ -1,17 +1,17 @@
 /**  
-* Filename:    GeneralSimulator.java  
-* Description:   
-* Copyright:   Copyright (c)2011 
-* Company:    company 
-* @author:     Hongze Zhao 
-* @version:    1.0  
-* Create at:   Feb 18, 2012 3:59:51 PM  
-*  
-* Modification History:  
-* Date         Author      Version     Description  
-* ------------------------------------------------------------------  
-* Feb 18, 2012    Hongze Zhao   1.0         1.0 Version  
-*/
+ * Filename:    GeneralSimulator.java  
+ * Description:   
+ * Copyright:   Copyright (c)2011 
+ * Company:    company 
+ * @author:     Hongze Zhao 
+ * @version:    1.0  
+ * Create at:   Feb 18, 2012 3:59:51 PM  
+ *  
+ * Modification History:  
+ * Date         Author      Version     Description  
+ * ------------------------------------------------------------------  
+ * Feb 18, 2012    Hongze Zhao   1.0         1.0 Version  
+ */
 package randy;
 
 import java.util.Collections;
@@ -147,6 +147,8 @@ public abstract class GeneralSimulator implements ISimulator {
 				this.successfulCount++;
 			} else {
 				this.failedCount++;
+				System.out.println(String.format("[inRun] failure count %1d\n",
+						this.failedCount));
 			}
 		}
 		System.out.println("finish");
@@ -166,6 +168,8 @@ public abstract class GeneralSimulator implements ISimulator {
 				/ this.flows.size()));
 		this.metrics.add(new ResultMetric("SuccCount", this.successfulCount));
 		this.metrics.add(new ResultMetric("FailCount", this.failedCount));
+		this.metrics.add(new ResultMetric("ThroughputPerLink", abt
+				/ this.dcn.linkCount()));
 	}
 
 	protected void preparePairs() {
@@ -204,6 +208,7 @@ public abstract class GeneralSimulator implements ISimulator {
 		while (flowIterator.hasNext()) {
 			Flow flow = flowIterator.next();
 			double bw = flow.bandwidth();
+			// System.out.println("bandwidth " + bw);
 			this.flowBandwidth.put(flow, bw);
 		}
 	}

@@ -25,7 +25,11 @@ import java.util.concurrent.LinkedBlockingDeque;
 
 import randy.BaseDCN;
 import randy.ConstantManager;
+import randy.FailureSimulator;
+import randy.ISimulator;
+import randy.components.Flow;
 import randy.components.IPAddr;
+import randy.components.Link;
 import randy.components.Node;
 
 /**
@@ -77,6 +81,7 @@ public class Jellyfish extends BaseDCN {
 		public int getTORId() {
 			return this.torId;
 		}
+
 		private List<JellyfishSwitch> neiborSwitches = new ArrayList<JellyfishSwitch>();
 
 		private HashMap<Integer, RouteTableEntry> routeTable = new HashMap<Integer, RouteTableEntry>();
@@ -162,6 +167,8 @@ public class Jellyfish extends BaseDCN {
 
 	}
 
+	private HashMap<Integer, JellyfishSwitch> switchHashMap = new HashMap<Integer, Jellyfish.JellyfishSwitch>();
+
 	/**
 	 * connect two Jellyfish Switch add neibor switch to each other
 	 * 
@@ -188,6 +195,7 @@ public class Jellyfish extends BaseDCN {
 				+ String.valueOf(torID), torID, torPort);
 		tor.setAddr(new IPAddr(new Integer[] { torID }));
 		this.addSwitch(tor);
+		this.switchHashMap.put(torID, tor);
 		for (int i = 0; i < torSize; i++) {
 			Node server = new Node(String.format("server-%1d-%2d", torID, i));
 			this.addServer(server);
@@ -303,6 +311,36 @@ public class Jellyfish extends BaseDCN {
 	public Jellyfish(int torSize, int torCount, int torPortCount) {
 		this.buildJellifish(torSize, torCount, torPortCount);
 	}
+
+	/**
+	 * get Flow from sw1 to sw2
+	 * 
+	 * @param sw1
+	 * @param sw2
+	 * @return
+	 * @author Hongze Zhao
+	 */
+	private Flow switchToSwitchFlow(JellyfishSwitch sw1, JellyfishSwitch sw2) {
+		Flow flow = new Flow(sw1, sw2);
+		JellyfishSwitch pos = sw1;
+		while (!pos.equals(sw2)) {
+			JellyfishSwitch nextHop = pos.randomNextHop(sw2.getTORId());
+			if (nextHop == null) {
+				return null;
+			}
+			Link link = pos.getLink(nextHop);
+			if (link == null) {
+				System.out.println(String.format(
+						"[switchToSwitcFlow]: %1s do not have neibor %2s",
+						pos.getName(), nextHop.getName()));
+				return null;
+			}
+			flow.addLink(link);
+			pos = nextHop;
+		}
+		return flow;
+
+	}
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -310,8 +348,50 @@ public class Jellyfish extends BaseDCN {
 	 */
 	@Override
 	public RouteResult route(UUID sourceUUID, UUID targetUUID) {
-		// TODO Auto-generated method stub
-		return null;
+		// TODO do not support failure routing now!
+		Node source = this.getServer(sourceUUID);
+		Node target = this.getServer(targetUUID);
+		// System.out.println(String.format("[route]: source %1s target %2s",
+		// source.getName(), target.getName()));
+		if (source == null || target == null) {
+			System.err
+			.println("[Jellyfish.route]: source or target is not existed");
+			return null;
+		}
+
+		JellyfishSwitch sourceSwitch = this.switchHashMap.get(source.getAddr()
+				.getSegment(0));
+		JellyfishSwitch targetSwitch = this.switchHashMap.get(target.getAddr()
+				.getSegment(0));
+		if (source.getAddr().getSegment(0) == target.getAddr().getSegment(0)) {
+			Flow flow = new Flow(source, target);
+			if (source.getLink(sourceSwitch) == null
+					|| target.getLink(targetSwitch) == null) {
+				System.err
+				.println("[Jellyfish.route]: server to switch link not existed\n");
+			}
+			flow.addLink(source.getLink(sourceSwitch));
+			flow.addLink(target.getLink(targetSwitch));
+			// System.out.println(String.format("inner-TOR-flow"));
+			return new RouteResult(flow, source, target);
+		}
+		if (sourceSwitch == null || targetSwitch == null) {
+			System.err
+			.println("[Jellyfish.route]: source or target switch is not existed");
+			return null;
+		}
+		Flow flow = this.switchToSwitchFlow(sourceSwitch, targetSwitch);
+		RouteResult rr = null;
+		if (flow == null) {
+			rr = new RouteResult(source, target);
+		} else {
+			flow.addLink(source.getLink(sourceSwitch));
+			flow.addLink(target.getLink(targetSwitch));
+			rr = new RouteResult(flow, source, target);
+			// System.out.println(String.format("flow size %1d", rr.getFlow()
+			// .getLinks().size()));
+		}
+		return rr;
 	}
 
 	/**
@@ -319,9 +399,20 @@ public class Jellyfish extends BaseDCN {
 	 * @author Hongze Zhao
 	 */
 	public static void main(String[] args) {
-		// TODO Auto-generated method stub
-		Jellyfish jf = new Jellyfish(24, 10, 5);
-		System.out.println("Test ok");
+		BaseDCN dcn = new Jellyfish(2, 30, 4);
+		ISimulator sim = new FailureSimulator(0, 0, 0, dcn);
+		sim.initialize();
+		sim.run();
+		for (Link link : dcn.getLinks()) {
+			System.out.println(link.toString());
+		}
+		try {
+			System.out.println(String.format(
+					"ABT %1f \n Throughput per Port %2f\n",
+					sim.getMetric("ABT"), sim.getMetric("ThroughputPerLink")));
+		} catch (Exception ex) {
+			System.out.println(ex.getMessage());
+		}
 
 	}
 }

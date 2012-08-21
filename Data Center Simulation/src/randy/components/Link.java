@@ -75,7 +75,7 @@ public class Link {
 	public List<Flow> getFlows() {
 		return this.flows;
 	}
-	
+
 	/**
 	 * Whether two links has one node in comman
 	 * 
@@ -86,7 +86,7 @@ public class Link {
 		return this.head.equals(link.head) || this.head.equals(link.tail)
 				|| this.tail.equals(link.head) || this.tail.equals(link.tail);
 	}
-	
+
 	/**
 	 * Whether this link contain the node
 	 * 
@@ -140,6 +140,8 @@ public class Link {
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
+		sb.append(this.uuid.toString());
+		sb.append(" ");
 		sb.append(this.head.getName());
 		sb.append(" : ");
 		if (this.head.getAddr() != null) {
@@ -155,6 +157,10 @@ public class Link {
 		} else {
 			sb.append("undefined");
 		}
+		sb.append(String.format(" flownum %1d \n", this.flows.size()));
+		// for (Flow flow : this.flows) {
+		// sb.append(String.format("%1s\n", flow.toString()));
+		// }
 		return sb.toString();
 	}
 

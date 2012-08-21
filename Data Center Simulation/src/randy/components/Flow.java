@@ -1,17 +1,17 @@
 /**  
-* Filename:    Flow.java  
-* Description:   
-* Copyright:   Copyright (c)2011 
-* Company:    company 
-* @author:     Hongze Zhao 
-* @version:    1.0  
-* Create at:   Jan 24, 2012 8:02:43 PM  
-*  
-* Modification History:  
-* Date         Author      Version     Description  
-* ------------------------------------------------------------------  
-* Jan 24, 2012    Hongze Zhao   1.0         1.0 Version  
-*/
+ * Filename:    Flow.java  
+ * Description:   
+ * Copyright:   Copyright (c)2011 
+ * Company:    company 
+ * @author:     Hongze Zhao 
+ * @version:    1.0  
+ * Create at:   Jan 24, 2012 8:02:43 PM  
+ *  
+ * Modification History:  
+ * Date         Author      Version     Description  
+ * ------------------------------------------------------------------  
+ * Jan 24, 2012    Hongze Zhao   1.0         1.0 Version  
+ */
 package randy.components;
 
 import java.util.LinkedList;
@@ -109,7 +109,7 @@ public class Flow {
 	public List<Link> getLinks() {
 		return this.links;
 	}
-	
+
 	/**
 	 * Reverse the flow and copy to a new flow
 	 * 
@@ -170,11 +170,8 @@ public class Flow {
 		sb.append(this.source.getAddr().toString());
 		sb.append(" target is ");
 		sb.append(this.target.getAddr().toString());
-		sb.append("  ");
-		for (int i = 0; i < this.links.size(); i++) {
-			sb.append(this.links.get(i).toString());
-			sb.append("  ");
-		}
+		sb.append(String.format(" length %1d", this.links.size()));
+
 		return sb.toString();
 	}
 

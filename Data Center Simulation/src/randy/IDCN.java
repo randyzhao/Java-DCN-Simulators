@@ -66,17 +66,17 @@ public interface IDCN {
 		}
 
 		public final boolean isSuccessful() {
-			return successful;
+			return this.successful;
 		}
 		public final Flow getFlow() {
 			assert this.successful : "A failed route's flow should not be accessed\n";
-			return flow;
+		return this.flow;
 		}
 		public final Node getSource() {
-			return source;
+			return this.source;
 		}
 		public final Node getTarget() {
-			return target;
+			return this.target;
 		}
 	}
 
@@ -131,6 +131,8 @@ public interface IDCN {
 	 * @author Hongze Zhao
 	 */
 	void reset();
+
+	int linkCount();
 	/**
 	 * Get the list of servers' UUIDs
 	 * 

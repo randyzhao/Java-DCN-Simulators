@@ -1,17 +1,17 @@
 /**  
-* Filename:    BCube.java  
-* Description:   
-* Copyright:   Copyright (c)2011 
-* Company:    company 
-* @author:     Hongze Zhao 
-* @version:    1.0  
-* Create at:   Feb 12, 2012 8:21:11 PM  
-*  
-* Modification History:  
-* Date         Author      Version     Description  
-* ------------------------------------------------------------------  
-* Feb 12, 2012    Hongze Zhao   1.0         1.0 Version  
-*/
+ * Filename:    BCube.java  
+ * Description:   
+ * Copyright:   Copyright (c)2011 
+ * Company:    company 
+ * @author:     Hongze Zhao 
+ * @version:    1.0  
+ * Create at:   Feb 12, 2012 8:21:11 PM  
+ *  
+ * Modification History:  
+ * Date         Author      Version     Description  
+ * ------------------------------------------------------------------  
+ * Feb 12, 2012    Hongze Zhao   1.0         1.0 Version  
+ */
 package randy.DCNs;
 
 import java.util.ArrayList;
@@ -284,7 +284,7 @@ public class BCube extends BaseDCN {
 	private Flow BCubeRouting(IPAddr sourceAddr, IPAddr targetAddr, int[] permu) {
 		Flow flow = new Flow(this.getServer(sourceAddr),
 				this.getServer(sourceAddr));
-		
+
 		IPAddr iNode = new IPAddr(sourceAddr);
 		for (int i = this.k; i >= 0; i--){
 			if (sourceAddr.getSegment(permu[i]) != targetAddr.getSegment(permu[i])){
@@ -364,9 +364,19 @@ public class BCube extends BaseDCN {
 	 * @author Hongze Zhao
 	 */
 	public static void main(String[] args) {
-		new BCube(2, 1);
-
-		// ISimulator sim = new FailureSimulator(1.0, 0, 0, new BCube(4, 2));
+		ISimulator sim = new FailureSimulator(0, 0, 0, new BCube(4, 2));
+		sim.initialize();
+		sim.run();
+		try {
+			System.out.println(String.format(
+					"ABT %1f \n Throughput per Port %2f\n",
+					sim.getMetric("ABT"), sim.getMetric("ThroughputPerLink")));
+		} catch (Exception ex) {
+			System.out.println(ex.getMessage());
+		}
+		//
+		// for (double rat = 0; rat < 1.01; rat += 0.1) {
+		// ISimulator sim = new FailureSimulator(rat, 0, 0, new BCube(6, 2));
 		// sim.initialize();
 		// sim.run();
 		// try {
@@ -375,18 +385,7 @@ public class BCube extends BaseDCN {
 		// } catch (Exception ex) {
 		// System.out.println(ex.getMessage());
 		// }
-
-		for (double rat = 0; rat < 1.01; rat += 0.1) {
-			ISimulator sim = new FailureSimulator(rat, 0, 0, new BCube(6, 2));
-			sim.initialize();
-			sim.run();
-			try {
-				System.out.println(sim.getMetric("ABT") + " "
-						+ sim.getMetric("SuccCount"));
-			} catch (Exception ex) {
-				System.out.println(ex.getMessage());
-			}
-		}
+		// }
 
 	}
 

@@ -1,17 +1,17 @@
 /**  
-* Filename:    BaseDCN.java  
-* Description:   
-* Copyright:   Copyright (c)2011 
-* Company:    company 
-* @author:     Hongze Zhao 
-* @version:    1.0  
-* Create at:   Jan 24, 2012 9:13:55 PM  
-*  
-* Modification History:  
-* Date         Author      Version     Description  
-* ------------------------------------------------------------------  
-* Jan 24, 2012    Hongze Zhao   1.0         1.0 Version  
-*/
+ * Filename:    BaseDCN.java  
+ * Description:   
+ * Copyright:   Copyright (c)2011 
+ * Company:    company 
+ * @author:     Hongze Zhao 
+ * @version:    1.0  
+ * Create at:   Jan 24, 2012 9:13:55 PM  
+ *  
+ * Modification History:  
+ * Date         Author      Version     Description  
+ * ------------------------------------------------------------------  
+ * Jan 24, 2012    Hongze Zhao   1.0         1.0 Version  
+ */
 package randy;
 
 import java.util.ArrayList;
@@ -57,6 +57,11 @@ public abstract class BaseDCN implements IDCN {
 	 * All links
 	 */
 	protected final List<Link> links = new ArrayList<Link>();
+
+	@Override
+	public int linkCount() {
+		return this.links.size();
+	}
 	/* (non-Javadoc)
 	 * @see randy.IDCN#route(java.util.UUID, java.util.UUID)
 	 */
@@ -133,9 +138,9 @@ public abstract class BaseDCN implements IDCN {
 		Node server1 = this.getServer(addr1);
 		Node server2 = this.getServer(addr2);
 		assert (server1 != null) : "server1 is null, addr is "
-				+ addr1.toString();
+		+ addr1.toString();
 		assert (server2 != null) : "server2 is null, addr is "
-				+ addr2.toString();
+		+ addr2.toString();
 		this.connectNode(server1, server2, bandwidth);
 	}
 
@@ -218,6 +223,6 @@ public abstract class BaseDCN implements IDCN {
 		for (Node sw : this.switches) {
 			sw.reset();
 		}
-		
+
 	}
 }
