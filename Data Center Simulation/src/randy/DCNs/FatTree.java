@@ -21,8 +21,8 @@ import java.util.UUID;
 
 import randy.BaseDCN;
 import randy.ConstantManager;
-import randy.FailureSimulator;
 import randy.ISimulator;
+import randy.OneToOneSimulator;
 import randy.components.Flow;
 import randy.components.IPAddr;
 import randy.components.Link;
@@ -288,7 +288,7 @@ public class FatTree extends BaseDCN {
 				for (int i = 0; i < this.k / 2; i++) {
 					if (pod1 == pod2) {
 						this.flowsBetweenAggeSwitches
-								.add(new ArrayList<Flow>());
+						.add(new ArrayList<Flow>());
 						continue;
 					}
 					if (pod1 > pod2) {
@@ -328,7 +328,7 @@ public class FatTree extends BaseDCN {
 					for (int j = 0; j < this.k / 2; j++) {
 						if (pod1 == pod2) {
 							this.flowsBetweenEdgeSwitchesDiffPod
-									.add(new ArrayList<Flow>());
+							.add(new ArrayList<Flow>());
 						} else {
 							// pod1 < pod2
 							Node edge1 = this.getEdgeSwitch(new IPAddr(
@@ -415,8 +415,8 @@ public class FatTree extends BaseDCN {
 			return this.diffPodRoute(source, target);
 		}
 		assert false : "this code should not be executed\nsource addr is "
-				+ source.getAddr().toString() + " target addr is "
-				+ target.getAddr().toString();
+		+ source.getAddr().toString() + " target addr is "
+		+ target.getAddr().toString();
 		return null;
 	}
 
@@ -507,7 +507,7 @@ public class FatTree extends BaseDCN {
 	 */
 	private List<Flow> getFlowsListBetweenTwoEdges(Node edge1, Node edge2) {
 		assert IPAddr.getCommonPrefix(edge1.getAddr(), edge2.getAddr())
-				.getLength() == 1;
+		.getLength() == 1;
 		List<Flow> flows = new ArrayList<Flow>();
 		for (int i = 0; i < this.k / 2; i++) {
 			Link l1 = edge1.getLinks().get(i);
@@ -544,16 +544,26 @@ public class FatTree extends BaseDCN {
 	 * @author Hongze Zhao
 	 */
 	public static void main(String[] args) {
-		for (double rat = 0; rat < 1.01; rat += 0.1) {
-			ISimulator sim = new FailureSimulator(rat, 0, 0, new FatTree(10));
-			sim.initialize();
-			sim.run();
-			try {
-				System.out.println(sim.getMetric("ABT") + " "
-						+ sim.getMetric("SuccCount"));
-			} catch (Exception ex) {
-				System.out.println(ex.getMessage());
-			}
+		//		ISimulator sim = new FailureSimulator(0, 0, 0, new FatTree(12));
+		//		sim.initialize();
+		//		sim.run();
+		//		try {
+		//			System.out.println(String.format(
+		//					"ABT %1f \n Throughput per Port %2f\n",
+		//					sim.getMetric("ABT"), sim.getMetric("ThroughputPerLink")));
+		//		} catch (Exception ex) {
+		//			System.out.println(ex.getMessage());
+		//		}
+
+		ISimulator sim = new OneToOneSimulator(new FatTree(12));
+		sim.initialize();
+		sim.run();
+		try {
+			System.out.println(String.format(
+					"ABT %1f \n Throughput per Port %2f\n",
+					sim.getMetric("ABT"), sim.getMetric("ThroughputPerLink")));
+		} catch (Exception ex) {
+			System.out.println(ex.getMessage());
 		}
 	}
 

@@ -162,7 +162,9 @@ public abstract class GeneralSimulator implements ISimulator {
 	protected void postRun() {
 		this.calculateFlowBandwidthHops();
 		double abt = this.ABT();
+		double agt = this.AGT();
 		this.metrics.add(new ResultMetric("ABT", abt));
+		this.metrics.add(new ResultMetric("AGT", agt));
 		this.metrics.add(new ResultMetric("Hops", this.Hops()));
 		this.metrics.add(new ResultMetric("AveHops", this.Hops()
 				/ this.flows.size()));
@@ -256,6 +258,14 @@ public abstract class GeneralSimulator implements ISimulator {
 		return output * this.successfulCount;
 	}
 
+	protected double AGT() {
+		Double output = 0.0;
+		Iterator<Double> bws = this.flowBandwidth.values().iterator();
+		while (bws.hasNext()) {
+			output += bws.next();
+		}
+		return output;
+	}
 	/**
 	 * Calculate total hops count of all the flows
 	 * 

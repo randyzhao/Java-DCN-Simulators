@@ -1,17 +1,17 @@
 /**  
-* Filename:    UFix.java  
-* Description:   
-* Copyright:   Copyright (c)2011 
-* Company:    company 
-* @author:     Hongze Zhao 
-* @version:    1.0  
-* Create at:   Feb 19, 2012 10:53:00 AM  
-*  
-* Modification History:  
-* Date         Author      Version     Description  
-* ------------------------------------------------------------------  
-* Feb 19, 2012    Hongze Zhao   1.0         1.0 Version  
-*/
+ * Filename:    UFix.java  
+ * Description:   
+ * Copyright:   Copyright (c)2011 
+ * Company:    company 
+ * @author:     Hongze Zhao 
+ * @version:    1.0  
+ * Create at:   Feb 19, 2012 10:53:00 AM  
+ *  
+ * Modification History:  
+ * Date         Author      Version     Description  
+ * ------------------------------------------------------------------  
+ * Feb 19, 2012    Hongze Zhao   1.0         1.0 Version  
+ */
 package randy.DCNs;
 
 import java.util.ArrayList;
@@ -187,7 +187,7 @@ public class UFix extends BaseDCN {
 		ILinkConnector connector = new InterleavingConnector();
 		connector.connect(this);
 	}
-	
+
 	/**
 	 * Add a link into interLinks
 	 * 
@@ -256,7 +256,7 @@ public class UFix extends BaseDCN {
 		this.linkCount[domain1][domain2]++;
 		this.linkCount[domain2][domain1]++;
 	}
-	
+
 	public void addLinkCount(int domain1, int domain2, int count) {
 		this.linkCount[domain1][domain2] += count;
 		this.linkCount[domain2][domain1] += count;
@@ -265,7 +265,7 @@ public class UFix extends BaseDCN {
 	public List<Node> proxyServer() {
 		return this.proxyServers;
 	}
-	
+
 	public List<UFixDomain> getDomains() {
 		return this.domains;
 	}
@@ -349,7 +349,7 @@ public class UFix extends BaseDCN {
 		} else {
 			if (this.domains.get(domain1).dcn
 					.containNode(l.getHead().getUuid())) {// links' head is in
-															// domain1
+				// domain1
 				source = l.getHead();
 				target = l.getTail();
 
@@ -383,7 +383,7 @@ public class UFix extends BaseDCN {
 			} else {
 				if (this.domains.get(domain1).dcn.containNode(l.getHead()
 						.getUuid())) {// links' head is in
-										// domain1
+					// domain1
 					source = l.getHead();
 					target = l.getTail();
 
@@ -510,7 +510,7 @@ public class UFix extends BaseDCN {
 			}
 			assert flow.isValid();
 			assert flow.getSource().equals(source)
-					&& flow.getTarget().equals(target);
+			&& flow.getTarget().equals(target);
 			return new RouteResult(flow, source, target);
 		}
 	}
@@ -519,26 +519,36 @@ public class UFix extends BaseDCN {
 	 * @author Hongze Zhao
 	 */
 	public static void main(String[] args) {
-		for (Double rat = 0.0; rat < 0.41; rat += 0.05) {
-			ISimulator sim = new FailureSimulator(rat, 0, 0,
- new UFix(0.5,
-					new UFix(0.5, new BCube(4, 1), new FatTree(4), new DCell(4,
-							1)), new UFix(0.5, new BCube(4, 1), new FatTree(4),
-							new DCell(4, 1)), new UFix(0.5, new BCube(4, 1),
-							new FatTree(4), new DCell(4, 1))));
-			sim.initialize();
-			sim.run();
-			try {
-				System.out.println("failure ratio "
-						+ ((Double) (rat * 100)).intValue() + "% : "
-						+ sim.getMetric("ABT") + " "
-						+ (int) sim.getMetric("SuccCount") + " "
-						+ sim.getMetric("AveHops"));
-			} catch (Exception ex) {
-				System.out.println(ex.getMessage());
-			}
+		ISimulator sim = new FailureSimulator(0, 0, 0,
+				new UFix(0.9, new UFix(0.9, new BCube(4, 1), new FatTree(4),
+						new DCell(4, 1)), new UFix(0.5, new BCube(4, 1),
+								new FatTree(4), new DCell(4, 1)), new UFix(0.5,
+										new BCube(4, 1), new FatTree(4), new DCell(4, 1))));
+		sim.initialize();
+		sim.run();
+		try {
+			System.out.println(String.format(
+					"ABT %1f \nThroughput per Port %2f\nAGT %3f",
+					sim.getMetric("ABT"), sim.getMetric("ThroughputPerLink"),
+					sim.getMetric("AGT")));
+		} catch (Exception ex) {
+			System.out.println(ex.getMessage());
 		}
-		assert false : "the end";
+
+		// ISimulator sim = new OneToOneSimulator(
+		// new UFix(0.9, new UFix(0.9, new BCube(4, 1), new FatTree(4),
+		// new DCell(4, 1)), new UFix(0.5, new BCube(4, 1),
+		// new FatTree(4), new DCell(4, 1)), new UFix(0.5,
+		// new BCube(4, 1), new FatTree(4), new DCell(4, 1))));
+		// sim.initialize();
+		// sim.run();
+		// try {
+		// System.out.println(String.format(
+		// "ABT %1f \n Throughput per Port %2f\n",
+		// sim.getMetric("ABT"), sim.getMetric("ThroughputPerLink")));
+		// } catch (Exception ex) {
+		// System.out.println(ex.getMessage());
+		// }
 	}
 
 	@Override

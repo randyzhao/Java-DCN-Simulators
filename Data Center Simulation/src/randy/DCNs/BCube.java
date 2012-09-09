@@ -22,8 +22,8 @@ import java.util.UUID;
 
 import randy.BaseDCN;
 import randy.ConstantManager;
-import randy.FailureSimulator;
 import randy.ISimulator;
+import randy.OneToOneSimulator;
 import randy.components.Flow;
 import randy.components.IPAddr;
 import randy.components.Link;
@@ -364,16 +364,29 @@ public class BCube extends BaseDCN {
 	 * @author Hongze Zhao
 	 */
 	public static void main(String[] args) {
-		ISimulator sim = new FailureSimulator(0, 0, 0, new BCube(4, 2));
+		// ISimulator sim = new FailureSimulator(0, 0, 0, new BCube(8, 2));
+		// sim.initialize();
+		// sim.run();
+		// try {
+		// System.out.println(String.format(
+		// "ABT %1f \n Throughput per Port %2f\n",
+		// sim.getMetric("ABT"), sim.getMetric("ThroughputPerLink")));
+		// } catch (Exception ex) {
+		// System.out.println(ex.getMessage());
+		// }
+
+		ISimulator sim = new OneToOneSimulator(new BCube(8, 2));
 		sim.initialize();
 		sim.run();
 		try {
 			System.out.println(String.format(
-					"ABT %1f \n Throughput per Port %2f\n",
-					sim.getMetric("ABT"), sim.getMetric("ThroughputPerLink")));
+					"ABT %1f \nThroughput per Port %2f\nAGT %3f",
+					sim.getMetric("ABT"), sim.getMetric("ThroughputPerLink"),
+					sim.getMetric("AGT")));
 		} catch (Exception ex) {
 			System.out.println(ex.getMessage());
 		}
+
 		//
 		// for (double rat = 0; rat < 1.01; rat += 0.1) {
 		// ISimulator sim = new FailureSimulator(rat, 0, 0, new BCube(6, 2));

@@ -25,8 +25,8 @@ import java.util.concurrent.LinkedBlockingDeque;
 
 import randy.BaseDCN;
 import randy.ConstantManager;
-import randy.FailureSimulator;
 import randy.ISimulator;
+import randy.OneToOneSimulator;
 import randy.components.Flow;
 import randy.components.IPAddr;
 import randy.components.Link;
@@ -399,13 +399,24 @@ public class Jellyfish extends BaseDCN {
 	 * @author Hongze Zhao
 	 */
 	public static void main(String[] args) {
-		BaseDCN dcn = new Jellyfish(2, 30, 4);
-		ISimulator sim = new FailureSimulator(0, 0, 0, dcn);
+		// BaseDCN dcn = new Jellyfish(24, 20, 24);
+		// ISimulator sim = new FailureSimulator(0, 0, 0, dcn);
+		// sim.initialize();
+		// sim.run();
+		// // for (Link link : dcn.getLinks()) {
+		// // System.out.println(link.toString());
+		// // }
+		// try {
+		// System.out.println(String.format(
+		// "ABT %1f \n Throughput per Port %2f\n",
+		// sim.getMetric("ABT"), sim.getMetric("ThroughputPerLink")));
+		// } catch (Exception ex) {
+		// System.out.println(ex.getMessage());
+		// }
+
+		ISimulator sim = new OneToOneSimulator(new Jellyfish(24, 20, 24));
 		sim.initialize();
 		sim.run();
-		for (Link link : dcn.getLinks()) {
-			System.out.println(link.toString());
-		}
 		try {
 			System.out.println(String.format(
 					"ABT %1f \n Throughput per Port %2f\n",

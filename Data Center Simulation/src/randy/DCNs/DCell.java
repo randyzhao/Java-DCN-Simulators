@@ -21,8 +21,8 @@ import java.util.UUID;
 
 import randy.BaseDCN;
 import randy.ConstantManager;
-import randy.FailureSimulator;
 import randy.ISimulator;
+import randy.OneToOneSimulator;
 import randy.components.Flow;
 import randy.components.IPAddr;
 import randy.components.Link;
@@ -92,11 +92,11 @@ public class DCell extends BaseDCN {
 				int uid1 = j - 1;
 				int uid2 = i;
 				IPAddr addr1 = pref.appendAndCopy(i);
-				addr1.connect(prefFromUid(uid1, l - 1, n));
+				addr1.connect(DCell.prefFromUid(uid1, l - 1, n));
 				assert addr1.getLength() == this.l + 1 : "the addr len is "
 						+ addr1.getLength() + "\n it should be " + (this.l + 1);
 				IPAddr addr2 = pref.appendAndCopy(j);
-				addr2.connect(prefFromUid(uid2, l - 1, n));
+				addr2.connect(DCell.prefFromUid(uid2, l - 1, n));
 				assert addr2.getLength() == this.l + 1 : "the addr len is "
 						+ addr2.getLength() + "\n it should be " + (this.l + 1);
 				this.connectServer(addr1, addr2, ConstantManager.LINK_BANDWIDTH);
@@ -128,7 +128,7 @@ public class DCell extends BaseDCN {
 		int uid = 0;
 		uid += addr.getSegment(addr.getLength() - 1);
 		for (int j = 1; j <= k; j++) {
-			uid += addr.getSegment(addr.getLength() - 1 - j) * getTk(j - 1, n);
+			uid += addr.getSegment(addr.getLength() - 1 - j) * DCell.getTk(j - 1, n);
 		}
 		return uid;
 	}
@@ -148,7 +148,7 @@ public class DCell extends BaseDCN {
 		List<Integer> addr = new LinkedList<Integer>();
 		Integer[] a = new Integer[k + 1];
 		for (int j = k; j >= 1; j--) {
-			int tk = getTk(j - 1, n);
+			int tk = DCell.getTk(j - 1, n);
 			a[k - j] = uid / tk;
 			uid -= tk * a[k - j];
 		}
@@ -167,7 +167,7 @@ public class DCell extends BaseDCN {
 		if (k == 0) {
 			return 1;
 		} else {
-			return getTk(k - 1, n) + 1;
+			return DCell.getTk(k - 1, n) + 1;
 		}
 	}
 
@@ -182,7 +182,7 @@ public class DCell extends BaseDCN {
 		if (k == 0) {
 			return n;
 		} else {
-			return getGk(k, n) * getTk(k - 1, n);
+			return DCell.getGk(k, n) * DCell.getTk(k - 1, n);
 		}
 	}
 
@@ -219,11 +219,11 @@ public class DCell extends BaseDCN {
 		IPAddr addr1 = new IPAddr(pref);
 		IPAddr addr2 = new IPAddr(pref);
 		addr1.appendSegment(skm);
-		addr1.connect(prefFromUid(dkm < skm ? dkm : dkm - 1,
+		addr1.connect(DCell.prefFromUid(dkm < skm ? dkm : dkm - 1,
 				this.l - pref.getLength() - 1,
 				this.n));
 		addr2.appendSegment(dkm);
-		addr2.connect(prefFromUid(skm < dkm ? skm : skm - 1,
+		addr2.connect(DCell.prefFromUid(skm < dkm ? skm : skm - 1,
 				this.l - pref.getLength() - 1, this.n));
 		Node source = this.getServer(addr1);
 		assert source != null : "addr1 is " + addr1.toString();
@@ -258,7 +258,7 @@ public class DCell extends BaseDCN {
 			// in the different DCell_0
 			Flow interFlow = this.GetLink(pref,
 					source.getAddr().getSegment(pref.getLength()), target
-							.getAddr().getSegment(pref.getLength()));
+					.getAddr().getSegment(pref.getLength()));
 			assert interFlow != null;
 			Flow path1 = this.DCellRouting(source, interFlow.getSource());
 			Flow path2 = this.DCellRouting(interFlow.getTarget(), target);
@@ -293,16 +293,26 @@ public class DCell extends BaseDCN {
 	}
 
 	public static void main(String[] args) {
-		for (double rat = 0; rat < 0.41; rat += 0.05) {
-			ISimulator sim = new FailureSimulator(0, 0, rat, new DCell(8, 1));
-			sim.initialize();
-			sim.run();
-			try {
-				System.out.println(sim.getMetric("ABT") + " "
-						+ sim.getMetric("SuccCount"));
-			} catch (Exception ex) {
-				System.out.println(ex.getMessage());
-			}
+		// ISimulator sim = new FailureSimulator(0, 0, 0, new DCell(8, 1));
+		// sim.initialize();
+		// sim.run();
+		// try {
+		// System.out.println(String.format(
+		// "ABT %1f \n Throughput per Port %2f\n",
+		// sim.getMetric("ABT"), sim.getMetric("ThroughputPerLink")));
+		// } catch (Exception ex) {
+		// System.out.println(ex.getMessage());
+		// }
+
+		ISimulator sim = new OneToOneSimulator(new DCell(8, 1));
+		sim.initialize();
+		sim.run();
+		try {
+			System.out.println(String.format(
+					"ABT %1f \n Throughput per Port %2f\n",
+					sim.getMetric("ABT"), sim.getMetric("ThroughputPerLink")));
+		} catch (Exception ex) {
+			System.out.println(ex.getMessage());
 		}
 	}
 
