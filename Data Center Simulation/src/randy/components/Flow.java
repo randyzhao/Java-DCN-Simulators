@@ -91,9 +91,7 @@ public class Flow {
 	public double bandwidth() {
 		double output = Double.MAX_VALUE;
 		for (Link l : this.links) {
-			if (l.currentBandwidth() < output) {
-				output = l.currentBandwidth();
-			}
+			output = Math.min(l.currentBandwidth(), output);
 		}
 		return output;
 	}

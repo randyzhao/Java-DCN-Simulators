@@ -22,16 +22,20 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
 
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
+
 import randy.BaseDCN;
 import randy.ConstantManager;
-import randy.FailureSimulator;
 import randy.ISimulator;
+import randy.UFixSimulator;
+import randy.XMLDCNBuilder;
 import randy.DCNs.ufix.GeneralLinkCounter;
-import randy.DCNs.ufix.HopsFirstProxySelector;
 import randy.DCNs.ufix.ILinkConnector;
 import randy.DCNs.ufix.ILinkCounter;
 import randy.DCNs.ufix.IProxySelector;
 import randy.DCNs.ufix.InterleavingConnector;
+import randy.DCNs.ufix.ShuffleProxySelector;
 import randy.components.Flow;
 import randy.components.Link;
 import randy.components.Node;
@@ -168,7 +172,7 @@ public class UFix extends BaseDCN {
 	public UFix(double connectDegree, BaseDCN... dcnList){
 		for (BaseDCN dcn : dcnList){
 			this.domains.add(new UFixDomain(dcn, connectDegree,
-					new HopsFirstProxySelector()));
+					new ShuffleProxySelector()));
 			for (Node server : dcn.getServers()) {
 				this.addServer(server);
 			}
@@ -188,6 +192,61 @@ public class UFix extends BaseDCN {
 		connector.connect(this);
 	}
 
+	public UFix(double connectDegree, List<BaseDCN> dcnList) {
+		for (BaseDCN dcn : dcnList) {
+			this.domains.add(new UFixDomain(dcn, connectDegree,
+					new ShuffleProxySelector()));
+			for (Node server : dcn.getServers()) {
+				this.addServer(server);
+			}
+			for (Node sw : dcn.getSwitches()) {
+				this.addSwitch(sw);
+			}
+			this.links.addAll(dcn.getLinks());
+		}
+		this.linkCount = new int[dcnList.size()][];
+		for (int i = 0; i < dcnList.size(); i++) {
+			this.linkCount[i] = new int[dcnList.size()];
+			Arrays.fill(this.linkCount[i], 0);
+		}
+		ILinkCounter counter = new GeneralLinkCounter();
+		counter.count(this);
+		ILinkConnector connector = new InterleavingConnector();
+		connector.connect(this);
+	}
+
+	public static UFix fromXMLElement(Element ele) {
+		NodeList paramNodeList = ele.getElementsByTagName("param");
+		double connectDegree = -1;
+		List<BaseDCN> dcnList = new LinkedList<BaseDCN>();
+		for (int i = 0; i < paramNodeList.getLength(); i++){
+			org.w3c.dom.Node paramNode = paramNodeList.item(i);
+			String paramName = ((Element)paramNode).getAttribute("name");
+			String paramValue = ((Element)paramNode).getAttribute("value");
+			if (!paramName.equals("")){
+				if (paramName.equals("degree")){
+					connectDegree = Double.parseDouble(paramValue);
+				}
+				if (paramName.equals("uFixCells")){
+
+					org.w3c.dom.Node child = paramNode.getFirstChild();
+					if (child == null){
+						System.err.println("UFix should contain at least one DCN");
+						return null;
+					}
+					while (child != null){
+						BaseDCN dcn = XMLDCNBuilder
+								.fromXMLElement((Element) child);
+						if (dcn != null) {
+							dcnList.add(dcn);
+						}
+						child = child.getNextSibling();
+					}
+				}
+			}
+		}
+		return new UFix(connectDegree, dcnList);
+	}
 	/**
 	 * Add a link into interLinks
 	 * 
@@ -230,6 +289,10 @@ public class UFix extends BaseDCN {
 	 */
 	public void interConnectProxy(int domain1, int domain2, Node head,
 			Node tail, double bandwidth) {
+		// System.out
+		// .println("[UFix.interConnectProxy]: connect " + domain1 + " "
+		// + head.getUuid().toString() + " - " + domain2 + " "
+		// + tail.getUuid().toString());
 		Link l = new Link(bandwidth, head, tail);
 		this.links.add(l);
 		this.addInterLink(domain1, domain2, l);
@@ -254,12 +317,10 @@ public class UFix extends BaseDCN {
 	 */
 	public void addLinkCount(int domain1, int domain2) {
 		this.linkCount[domain1][domain2]++;
-		this.linkCount[domain2][domain1]++;
 	}
 
 	public void addLinkCount(int domain1, int domain2, int count) {
 		this.linkCount[domain1][domain2] += count;
-		this.linkCount[domain2][domain1] += count;
 	}
 
 	public List<Node> proxyServer() {
@@ -375,15 +436,14 @@ public class UFix extends BaseDCN {
 	private List<Flow> getInterFlows(int domain1, int domain2) {
 		List<Link> links = this.getInterLinks(domain1, domain2);
 		List<Flow> output = new LinkedList<Flow>();
-		Node source = null, target = null;
-
+		// System.out.println("[UFix.getInterFlows]: into");
 		for (Link l : links) {
+			Node source = null, target = null;
 			if (l == null) {
 				return null;
 			} else {
 				if (this.domains.get(domain1).dcn.containNode(l.getHead()
-						.getUuid())) {// links' head is in
-					// domain1
+						.getUuid())) {// links' head is in domain1
 					source = l.getHead();
 					target = l.getTail();
 
@@ -393,9 +453,12 @@ public class UFix extends BaseDCN {
 				}
 			}
 			Flow flow = new Flow(source, target);
+			// System.out.println("[UFIx.getInterFlows]: source "
+			// + source.getUuid() + " target " + target.getUuid());
 			flow.addLink(l);
 			output.add(flow);
 		}
+		// System.out.println("[UFix.getInterFlows]: exit");
 		return output;
 	}
 
@@ -476,6 +539,9 @@ public class UFix extends BaseDCN {
 		if (output.isEmpty()) {
 			return null;
 		} else {
+			// System.out.println("[UFix.getValidFlow]: Candidate flows "
+			// + output.size());
+
 			return output.get(ConstantManager.ran.nextInt(output.size()));
 		}
 	}
@@ -497,7 +563,8 @@ public class UFix extends BaseDCN {
 		Node target = this.domains.get(targetDomainID).dcn
 				.getServer(targetUUID);
 		BaseDCN sourceDCN = this.domains.get(sourceDomainID).getDCN();
-		BaseDCN targetDCN = this.domains.get(targetDomainID).getDCN();
+		// System.out.println("[UFix.route]: sourceDomainID : " + sourceDomainID
+		// + " targetDomainID : " + targetDomainID);
 		if (sourceDomainID == targetDomainID) {
 			// System.out.println(1);
 			return sourceDCN.route(sourceUUID,
@@ -514,26 +581,137 @@ public class UFix extends BaseDCN {
 			return new RouteResult(flow, source, target);
 		}
 	}
+
+	private static UFix uFix1() {
+		int fatTreeSize = 4;
+		double interRatio = 0.8;
+		double outerRatio = 0.8;
+		UFix uFixCell1 = new UFix(interRatio, new FatTree(fatTreeSize),
+				new FatTree(fatTreeSize), new FatTree(fatTreeSize));
+		UFix uFixCell2 = new UFix(interRatio, new FatTree(fatTreeSize),
+				new FatTree(fatTreeSize), new FatTree(fatTreeSize));
+		UFix uFixCell3 = new UFix(interRatio, new FatTree(fatTreeSize),
+				new FatTree(fatTreeSize), new FatTree(fatTreeSize));
+		return new UFix(outerRatio, uFixCell1, uFixCell2, uFixCell3);
+	}
+
+	private static UFix uFix2() {
+		int fatTreeSize = 4;
+		int bCubeSize = 4;
+		int dCellSize = 4;
+		UFix uFixCell1 = new UFix(0.8, new FatTree(fatTreeSize),
+				new FatTree(fatTreeSize), new FatTree(fatTreeSize));
+		UFix uFixCell2 = new UFix(
+				0.8, new BCube(bCubeSize, 1), new BCube(
+						bCubeSize, 1), new BCube(bCubeSize, 1));
+		UFix uFixCell3 = new UFix(0.8, new DCell(dCellSize, 1), new DCell(
+				dCellSize, 1),
+				new DCell(dCellSize, 1));
+		return new UFix(0.8, uFixCell1, uFixCell2, uFixCell3);
+	}
+
+	private static UFix uFix3(double interRatio, double outerRatio) {
+		int fatTreeSize = 4;
+		int bCubeSize = 4;
+		int dCellSize = 4;
+		UFix uFixCell1 = new UFix(interRatio, new FatTree(fatTreeSize),
+				new BCube(
+						bCubeSize, 1), new DCell(dCellSize, 1));
+		UFix uFixCell2 = new UFix(interRatio, new FatTree(fatTreeSize),
+				new BCube(
+						bCubeSize, 1), new DCell(dCellSize, 1));
+		UFix uFixCell3 = new UFix(interRatio, new FatTree(fatTreeSize),
+				new BCube(
+						bCubeSize, 1), new DCell(dCellSize, 1));
+		return new UFix(outerRatio, uFixCell1, uFixCell2, uFixCell3);
+	}
+
+	private static UFix uFix4() {
+		double ratio = 0.8;
+		int fatTreeSize = 4;
+		return new UFix(ratio, new FatTree(fatTreeSize), new FatTree(
+				fatTreeSize), new FatTree(fatTreeSize));
+	}
+	private static UFix testUFix() {
+		return UFix.uFix1();
+	}
 	/**
 	 * @param args
 	 * @author Hongze Zhao
 	 */
 	public static void main(String[] args) {
-		ISimulator sim = new FailureSimulator(0, 0, 0,
-				new UFix(0.9, new UFix(0.9, new BCube(4, 1), new FatTree(4),
-						new DCell(4, 1)), new UFix(0.5, new BCube(4, 1),
-								new FatTree(4), new DCell(4, 1)), new UFix(0.5,
-										new BCube(4, 1), new FatTree(4), new DCell(4, 1))));
+		ISimulator sim = new UFixSimulator(UFix.uFix1());
 		sim.initialize();
 		sim.run();
 		try {
-			System.out.println(String.format(
-					"ABT %1f \nThroughput per Port %2f\nAGT %3f",
-					sim.getMetric("ABT"), sim.getMetric("ThroughputPerLink"),
-					sim.getMetric("AGT")));
+			System.out
+			.println(String
+					.format("ABT %1f \nThroughput per Port %2f\nAGT %3f\nServer Num %4f",
+							sim.getMetric("ABT"),
+							sim.getMetric("ThroughputPerLink"),
+							sim.getMetric("AGT"),
+							sim.getMetric("ServerNum")));
 		} catch (Exception ex) {
 			System.out.println(ex.getMessage());
 		}
+
+		// int repeatTimes = 10;
+		// for (double interRatio = 0.8; interRatio <= 0.81; interRatio += 0.2)
+		// {
+		// for (double outerRatio = 0.8; outerRatio <= 0.81; outerRatio += 0.2)
+		// {
+		// double sum = 0;
+		// for (int i = 0; i < repeatTimes; i++) {
+		// ISimulator sim = new UFixSimulator(UFix.uFix3(interRatio,
+		// outerRatio));
+		// sim.initialize();
+		// sim.run();
+		// try {
+		// // System.out
+		// // .println(String
+		// //
+		// .format("ABT %1f \nThroughput per Port %2f\nAGT %3f\nServer Num %4f",
+		// // sim.getMetric("ABT"),
+		// // sim.getMetric("ThroughputPerLink"),
+		// // sim.getMetric("AGT"), sim
+		// // .getMetric("ServerNum")));
+		// sum += sim.getMetric("ABT");
+		// } catch (Exception ex) {
+		// System.out.println(ex.getMessage());
+		// }
+		// }
+		// System.out.println("interRatio " + interRatio + " outerRatio "
+		// + outerRatio + " : " + sum / repeatTimes);
+		// }
+		// }
+		// ISimulator sim = new UFixSimulator(UFix.);
+		// sim.initialize();
+		// sim.run();
+		// try {
+		// System.out.println(String.format(
+		// "ABT %1f \nThroughput per Port %2f\nAGT %3f\nServer Num %4f",
+		// sim.getMetric("ABT"), sim.getMetric("ThroughputPerLink"),
+		// sim.getMetric("AGT"),
+		// sim.getMetric("ServerNum")));
+		// } catch (Exception ex) {
+		// System.out.println(ex.getMessage());
+		// }
+
+		// ISimulator sim = new FailureSimulator(0, 0, 0,
+		// new UFix(0.9, new UFix(0.9, new BCube(4, 1), new FatTree(4),
+		// new DCell(4, 1)), new UFix(0.5, new BCube(4, 1),
+		// new FatTree(4), new DCell(4, 1)), new UFix(0.5,
+		// new BCube(4, 1), new FatTree(4), new DCell(4, 1))));
+		// sim.initialize();
+		// sim.run();
+		// try {
+		// System.out.println(String.format(
+		// "ABT %1f \nThroughput per Port %2f\nAGT %3f",
+		// sim.getMetric("ABT"), sim.getMetric("ThroughputPerLink"),
+		// sim.getMetric("AGT")));
+		// } catch (Exception ex) {
+		// System.out.println(ex.getMessage());
+		// }
 
 		// ISimulator sim = new OneToOneSimulator(
 		// new UFix(0.9, new UFix(0.9, new BCube(4, 1), new FatTree(4),

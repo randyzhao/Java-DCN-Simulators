@@ -170,6 +170,8 @@ public abstract class GeneralSimulator implements ISimulator {
 				/ this.flows.size()));
 		this.metrics.add(new ResultMetric("SuccCount", this.successfulCount));
 		this.metrics.add(new ResultMetric("FailCount", this.failedCount));
+		this.metrics.add(new ResultMetric("ServerNum", this.dcn
+				.getServerUUIDs().size()));
 		this.metrics.add(new ResultMetric("ThroughputPerLink", abt
 				/ this.dcn.linkCount()));
 	}
@@ -253,8 +255,11 @@ public abstract class GeneralSimulator implements ISimulator {
 			double temp = bws.next();
 			if (temp < output) {
 				output = temp;
+				// System.out.println("[GeneralSimulator.ABT]: " + output);
 			}
 		}
+		// System.out.println("[GeneralSimulator.ABT]: succfulCount "
+		// + this.successfulCount);
 		return output * this.successfulCount;
 	}
 
@@ -262,7 +267,10 @@ public abstract class GeneralSimulator implements ISimulator {
 		Double output = 0.0;
 		Iterator<Double> bws = this.flowBandwidth.values().iterator();
 		while (bws.hasNext()) {
-			output += bws.next();
+			double bw = bws.next();
+			// System.out.println("[UFix.AGT]: bandwidth: " + bw);
+
+			output += bw;
 		}
 		return output;
 	}

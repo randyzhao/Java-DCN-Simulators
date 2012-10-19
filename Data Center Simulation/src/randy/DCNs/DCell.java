@@ -19,6 +19,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
 
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
+
 import randy.BaseDCN;
 import randy.ConstantManager;
 import randy.ISimulator;
@@ -56,6 +59,30 @@ public class DCell extends BaseDCN {
 		this.l = l;
 		IPAddr pref = new IPAddr();
 		this.BuildDCells(pref, n, l);
+	}
+
+	public static DCell fromXMLElement(Element ele) {
+		int n = -1;
+		int l = -1;
+		NodeList paramNodeList = ele.getElementsByTagName("param");
+		for (int i = 0; i < paramNodeList.getLength(); i++) {
+			org.w3c.dom.Node paramNode = paramNodeList.item(i);
+			String paramName = ((Element) paramNode).getAttribute("name");
+			String paramValue = ((Element) paramNode).getAttribute("value");
+			if (paramName != null && paramValue != null) {
+				if (paramName.equals("n")) {
+					n = Integer.parseInt(paramValue);
+				}
+				if (paramName.equals("l")) {
+					l = Integer.parseInt(paramValue);
+				}
+			}
+		}
+		if (n != -1 && l != -1) {
+			return new DCell(n, l);
+		} else {
+			return null;
+		}
 	}
 
 	public void BuildDCells(IPAddr pref, int n, int l) {

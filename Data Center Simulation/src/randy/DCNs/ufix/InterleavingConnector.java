@@ -1,17 +1,17 @@
 /**  
-* Filename:    InterleavingConnector.java  
-* Description:   
-* Copyright:   Copyright (c)2011 
-* Company:    company 
-* @author:     Hongze Zhao 
-* @version:    1.0  
-* Create at:   Feb 19, 2012 4:51:39 PM  
-*  
-* Modification History:  
-* Date         Author      Version     Description  
-* ------------------------------------------------------------------  
-* Feb 19, 2012    Hongze Zhao   1.0         1.0 Version  
-*/
+ * Filename:    InterleavingConnector.java  
+ * Description:   
+ * Copyright:   Copyright (c)2011 
+ * Company:    company 
+ * @author:     Hongze Zhao 
+ * @version:    1.0  
+ * Create at:   Feb 19, 2012 4:51:39 PM  
+ *  
+ * Modification History:  
+ * Date         Author      Version     Description  
+ * ------------------------------------------------------------------  
+ * Feb 19, 2012    Hongze Zhao   1.0         1.0 Version  
+ */
 package randy.DCNs.ufix;
 
 import java.util.Arrays;
@@ -64,8 +64,8 @@ public class InterleavingConnector implements ILinkConnector {
 						continue;
 					}
 					ufix.interConnectProxy(i, j, domains.get(i)
-							.getPlannedToUseProxyServer(i), domains.get(j)
-							.getPlannedToUseProxyServer(j),
+							.getPlannedToUseProxyServer(f[i]), domains.get(j)
+							.getPlannedToUseProxyServer(f[j]),
 							ConstantManager.LINK_BANDWIDTH);
 					f[i]++;
 					f[j]++;

@@ -1,17 +1,17 @@
 /**  
-* Filename:    GeneralLinkCounter.java  
-* Description:   
-* Copyright:   Copyright (c)2011 
-* Company:    company 
-* @author:     Hongze Zhao 
-* @version:    1.0  
-* Create at:   Feb 19, 2012 2:42:32 PM  
-*  
-* Modification History:  
-* Date         Author      Version     Description  
-* ------------------------------------------------------------------  
-* Feb 19, 2012    Hongze Zhao   1.0         1.0 Version  
-*/
+ * Filename:    GeneralLinkCounter.java  
+ * Description:   
+ * Copyright:   Copyright (c)2011 
+ * Company:    company 
+ * @author:     Hongze Zhao 
+ * @version:    1.0  
+ * Create at:   Feb 19, 2012 2:42:32 PM  
+ *  
+ * Modification History:  
+ * Date         Author      Version     Description  
+ * ------------------------------------------------------------------  
+ * Feb 19, 2012    Hongze Zhao   1.0         1.0 Version  
+ */
 package randy.DCNs.ufix;
 
 import java.util.Arrays;
@@ -45,10 +45,10 @@ public class GeneralLinkCounter implements ILinkCounter {
 			}
 		}
 		meshN /= (m - 1);
-		
+
 		int v[] = new int[domains.size()];
 		Arrays.fill(v, 0);
-		
+
 		for (int i = 0; i < m; i++) {
 			v[i] = domains.get(i).getU() - meshN * (m - 1);
 			for (int j = 0; j < m; j++) {
@@ -72,6 +72,7 @@ public class GeneralLinkCounter implements ILinkCounter {
 			}
 
 		}
+
 	}
 
 	/**

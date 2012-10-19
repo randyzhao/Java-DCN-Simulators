@@ -19,6 +19,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
 
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
+
 import randy.BaseDCN;
 import randy.ConstantManager;
 import randy.ISimulator;
@@ -37,7 +40,7 @@ public class FatTree extends BaseDCN {
 	/**
 	 * k value in the paper k means the pods number in BCube
 	 */
-	private final int k;
+	private int k;
 
 	/**
 	 * Whether the preRouteCalculation has done yet
@@ -86,6 +89,25 @@ public class FatTree extends BaseDCN {
 		this.connectServerAndEdge();
 	}
 
+	public static FatTree fromXMLElement(Element ele) {
+		int k = -1;
+		NodeList paramNodeList = ele.getElementsByTagName("param");
+		for (int i = 0; i < paramNodeList.getLength(); i++) {
+			org.w3c.dom.Node paramNode = paramNodeList.item(i);
+			String paramName = ((Element) paramNode).getAttribute("name");
+			String paramValue = ((Element) paramNode).getAttribute("value");
+			if (paramName != null && paramName.equals("k")) {
+				if (paramValue != null) {
+					k = Integer.parseInt(paramValue);
+				}
+			}
+		}
+		if (k == -1) {
+			System.err.println("parse FatTree error");
+			return null;
+		}
+		return new FatTree(k);
+	}
 	/**
 	 * Add core, agge, edge switches and servers to instance, called in
 	 * construction function
@@ -555,13 +577,15 @@ public class FatTree extends BaseDCN {
 		//			System.out.println(ex.getMessage());
 		//		}
 
-		ISimulator sim = new OneToOneSimulator(new FatTree(12));
+		ISimulator sim = new OneToOneSimulator(new FatTree(6));
 		sim.initialize();
 		sim.run();
 		try {
 			System.out.println(String.format(
-					"ABT %1f \n Throughput per Port %2f\n",
-					sim.getMetric("ABT"), sim.getMetric("ThroughputPerLink")));
+					"ABT %1f \nThroughput per Port %2f\nAGT %3f\nServer Num %4f",
+					sim.getMetric("ABT"), sim.getMetric("ThroughputPerLink"),
+					sim.getMetric("AGT"),
+					sim.getMetric("ServerNum")));
 		} catch (Exception ex) {
 			System.out.println(ex.getMessage());
 		}
